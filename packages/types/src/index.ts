@@ -1,0 +1,152 @@
+// ===== User =====
+export type UserRole = 'admin' | 'user'
+
+export interface User {
+  id: number
+  phone: string
+  email: string | null
+  nickname: string
+  avatar: string | null
+  role: UserRole
+  createdAt: string
+}
+
+export interface LoginDto {
+  phone: string
+  password: string
+}
+
+export interface RegisterDto {
+  phone: string
+  email?: string
+  password: string
+  nickname: string
+  avatar?: string
+}
+
+// ===== Thought =====
+export interface Thought {
+  id: number
+  content: string
+  images: string[]
+  userId: number
+  user: Pick<User, 'id' | 'nickname' | 'avatar'>
+  likesCount: number
+  commentsCount: number
+  liked: boolean
+  createdAt: string
+}
+
+export interface ThoughtComment {
+  id: number
+  content: string
+  userId: number
+  user: Pick<User, 'id' | 'nickname' | 'avatar'>
+  parentId: number | null
+  parent?: Pick<ThoughtComment, 'id' | 'user'>
+  createdAt: string
+}
+
+// ===== Article =====
+export type ArticleStatus = 'draft' | 'published'
+
+export interface Category {
+  id: number
+  name: string
+  slug: string
+}
+
+export interface Tag {
+  id: number
+  name: string
+}
+
+export interface Article {
+  id: number
+  title: string
+  slug: string
+  cover: string | null
+  summary: string | null
+  content: string
+  status: ArticleStatus
+  viewCount: number
+  readingTime: number
+  category: Category | null
+  tags: Tag[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ArticleListItem extends Omit<Article, 'content'> {}
+
+// ===== Resource =====
+export type ResourceType = 'image' | 'video' | 'file'
+
+export interface ResourceCategory {
+  id: number
+  name: string
+}
+
+export interface Resource {
+  id: number
+  name: string
+  url: string
+  type: ResourceType
+  size: number
+  category: ResourceCategory | null
+  createdAt: string
+}
+
+export interface PresignResult {
+  uploadUrl: string
+  key: string
+  publicUrl: string
+}
+
+// ===== Folders =====
+
+export interface Folder {
+  id: number
+  name: string
+  parentId: number | null
+  level: number
+  isPublic: boolean
+  createdAt: string
+}
+
+export interface FolderFile {
+  id: number
+  name: string
+  url: string
+  key: string
+  type: ResourceType
+  size: number
+  folderId: number
+  createdAt: string
+}
+
+export interface FolderContent {
+  folder: Folder
+  subfolders: Folder[]
+  files: FolderFile[]
+}
+
+// ===== Pagination =====
+export interface PaginationMeta {
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export interface PaginatedResult<T> {
+  data: T[]
+  meta: PaginationMeta
+}
+
+// ===== Common =====
+export interface ApiResponse<T = unknown> {
+  code: number
+  message: string
+  data: T
+}

@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  phone     String    @unique @db.VarChar(20)
+  email     String?   @unique @db.VarChar(255)
+  password  String    @db.VarChar(255)
+  nickname  String    @db.VarChar(50)
+  avatar    String?   @db.VarChar(500)
+  role      UserRole  @default(user)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  thoughts        Thought[]
+  thoughtLikes    ThoughtLike[]
+  thoughtComments ThoughtComment[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  admin
+  user
+}
+
+// ── Thoughts ───────────────────────────────────────────────────────────────
+
+model Thought {
+  id          Int      @id @default(autoincrement())
+  content     String   @db.Text
+  images      Json     @default("[]")
+  userId      Int
+  likesCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes    ThoughtLike[]
+  comments ThoughtComment[]
+
+  @@index([createdAt])
+  @@index([userId])
+  @@map("thoughts")
+}
+
+model ThoughtLike {
+  id        Int      @id @default(autoincrement())
+  thoughtId Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  thought Thought @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([thoughtId, userId])
+  @@map("thought_likes")
+}
+
+model ThoughtComment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  thoughtId Int
+  userId    Int
+  parentId  Int?
+  createdAt DateTime @default(now())
+
+  thought  Thought          @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   ThoughtComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  ThoughtComment[] @relation("CommentReplies")
+
+  @@index([thoughtId, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@map("thought_comments")
+}
+
+// ── Articles ───────────────────────────────────────────────────────────────
+
+model Article {
+  id          Int           @id @default(autoincrement())
+  title       String        @db.VarChar(255)
+  slug        String        @unique @db.VarChar(255)
+  cover       String?       @db.VarChar(500)
+  summary     String?       @db.VarChar(500)
+  content     String        @db.LongText
+  status      ArticleStatus @default(draft)
+  viewCount   Int           @default(0)
+  readingTime Int           @default(1)
+  categoryId  Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  category Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags     ArticleTag[]
+
+  @@index([status, createdAt])
+  @@index([categoryId])
+  @@map("articles")
+}
+
+enum ArticleStatus {
+  draft
+  published
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @db.VarChar(50)
+  slug     String    @unique @db.VarChar(50)
+  articles Article[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id       Int          @id @default(autoincrement())
+  name     String       @unique @db.VarChar(50)
+  articles ArticleTag[]
+
+  @@map("tags")
+}
+
+model ArticleTag {
+  articleId Int
+  tagId     Int
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+// ── Resources ──────────────────────────────────────────────────────────────
+
+model ResourceCategory {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(50)
+  resources Resource[]
+
+  @@map("resource_categories")
+}
+
+model Resource {
+  id         Int              @id @default(autoincrement())
+  name       String           @db.VarChar(255)
+  url        String           @db.VarChar(500)
+  key        String           @db.VarChar(500)
+  type       ResourceType
+  size       Int
+  categoryId Int?
+  createdAt  DateTime         @default(now())
+
+  category ResourceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([type, categoryId, createdAt])
+  @@index([createdAt])
+  @@map("resources")
+}
+
+enum ResourceType {
+  image
+  video
+  file
+}
+
+// ── Folders ────────────────────────────────────────────────────────────────
+
+model Folder {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  parentId  Int?
+  level     Int      @default(1)
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Folder?    @relation("FolderTree", fields: [parentId], references: [id])
+  children Folder[]   @relation("FolderTree")
+  files    FolderFile[]
+
+  @@index([parentId, isPublic])
+  @@index([level, isPublic])
+  @@map("folders")
+}
+
+model FolderFile {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(255)
+  url       String       @db.VarChar(500)
+  key       String       @db.VarChar(500)
+  type      ResourceType
+  size      Int
+  folderId  Int
+  createdAt DateTime     @default(now())
+
+  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([folderId, createdAt])
+  @@map("folder_files")
+}

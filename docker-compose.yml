@@ -1,0 +1,85 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: chenxu-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: chenxu_site
+      MYSQL_USER: chenxu
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: chenxu-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://chenxu:${MYSQL_PASSWORD}@mysql:3306/chenxu_site
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID}
+      OSS_ACCESS_KEY_SECRET: ${OSS_ACCESS_KEY_SECRET}
+      OSS_BUCKET: ${OSS_BUCKET}
+      OSS_REGION: ${OSS_REGION}
+      OSS_ENDPOINT: ${OSS_ENDPOINT}
+      CORS_ORIGIN: https://chenxu.xyz
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: chenxu-web
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: chenxu-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot_data:/var/www/certbot:ro
+    depends_on:
+      server:
+        condition: service_healthy
+      web:
+        condition: service_started
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+  certbot_data:
+
+networks:
+  app-network:
+    driver: bridge

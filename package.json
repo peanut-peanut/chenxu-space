@@ -1,0 +1,16 @@
+{
+  "name": "chenxu-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @chenxu/types run build && pnpm --parallel dev:web dev:server",
+    "dev:web": "pnpm --filter web dev",
+    "dev:server": "pnpm --filter server dev",
+    "build": "pnpm --filter @chenxu/types run build && pnpm --parallel --filter '!@chenxu/types' build",
+    "seed": "pnpm --filter server seed",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

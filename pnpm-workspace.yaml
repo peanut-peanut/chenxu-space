@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/engines': true
+  '@prisma/client': true
+  prisma: true
+  bcrypt: true
+  unrs-resolver: true
+  esbuild: true
