@@ -30,4 +30,4 @@ COPY apps/server/prisma ./apps/server/prisma
 WORKDIR /app/apps/server
 RUN pnpm exec prisma generate
 EXPOSE 3000
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/src/main.js"]
