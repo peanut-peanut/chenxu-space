@@ -9,7 +9,7 @@
 ## 目录结构
 
 ```
-chenxu-site/
+chenxu-space/
 ├── apps/
 │   ├── web/          # 前端 React 应用
 │   └── server/       # 后端 NestJS 应用
@@ -57,7 +57,7 @@ cp apps/server/.env.example apps/server/.env
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
-DATABASE_URL="mysql://chenxu:<你的MYSQL_PASSWORD>@localhost:3306/chenxu_site"
+DATABASE_URL="mysql://chenxu:<你的MYSQL_PASSWORD>@localhost:3306/chenxu_space"
 JWT_SECRET=<任意长随机字符串>
 JWT_REFRESH_SECRET=<任意长随机字符串>
 ADMIN_EMAIL=admin@chenxu.xyz
@@ -72,10 +72,10 @@ ADMIN_NICKNAME=chenxu
 brew services start mysql
 
 # 2) 创建数据库
-mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS chenxu_site;"
+mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS chenxu_space;"
 
 # 3) 创建应用账号并授权（密码要与 apps/server/.env 的 DATABASE_URL 一致）
-mysql -uroot -p -e "CREATE USER IF NOT EXISTS 'chenxu'@'localhost' IDENTIFIED BY '<你的MYSQL_PASSWORD>'; GRANT ALL PRIVILEGES ON chenxu_site.* TO 'chenxu'@'localhost'; FLUSH PRIVILEGES;"
+mysql -uroot -p -e "CREATE USER IF NOT EXISTS 'chenxu'@'localhost' IDENTIFIED BY '<你的MYSQL_PASSWORD>'; GRANT ALL PRIVILEGES ON chenxu_space.* TO 'chenxu'@'localhost'; FLUSH PRIVILEGES;"
 ```
 
 ### 4. 初始化表结构与管理员账号
@@ -134,8 +134,8 @@ pnpm --filter server start:dev
 ### 1. 克隆代码
 
 ```bash
-git clone <repo> chenxu-site
-cd chenxu-site
+git clone <repo> chenxu-space
+cd chenxu-space
 ```
 
 ### 2. 配置环境变量
@@ -231,11 +231,11 @@ docker compose exec server sh
 
 # 数据库备份
 docker compose exec mysql sh -c \
-  "mysqldump -u chenxu -p\$MYSQL_PASSWORD chenxu_site" > backup_$(date +%Y%m%d).sql
+  "mysqldump -u chenxu -p\$MYSQL_PASSWORD chenxu_space" > backup_$(date +%Y%m%d).sql
 
 # 恢复备份
 cat backup_20240101.sql | docker compose exec -T mysql sh -c \
-  "mysql -u chenxu -p\$MYSQL_PASSWORD chenxu_site"
+  "mysql -u chenxu -p\$MYSQL_PASSWORD chenxu_space"
 
 # SSL 证书续期
 certbot renew --quiet

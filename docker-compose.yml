@@ -1,11 +1,11 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: chenxu-mysql
+    container_name: chenxu-space-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: chenxu_site
+      MYSQL_DATABASE: chenxu_space
       MYSQL_USER: chenxu
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
@@ -23,11 +23,11 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: chenxu-server
+    container_name: chenxu-space-server
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      DATABASE_URL: mysql://chenxu:${MYSQL_PASSWORD}@mysql:3306/chenxu_site
+      DATABASE_URL: mysql://chenxu:${MYSQL_PASSWORD}@mysql:3306/chenxu_space
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID}
@@ -52,14 +52,14 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: chenxu-web
+    container_name: chenxu-space-web
     restart: unless-stopped
     networks:
       - app-network
 
   nginx:
     image: nginx:alpine
-    container_name: chenxu-nginx
+    container_name: chenxu-space-nginx
     restart: unless-stopped
     ports:
       - "80:80"

@@ -50,7 +50,7 @@ NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
 
-DATABASE_URL="mysql://chenxu:yourpassword@localhost:3306/chenxu_site"
+DATABASE_URL="mysql://chenxu:yourpassword@localhost:3306/chenxu_space"
 
 JWT_SECRET=至少32位随机字符串
 JWT_REFRESH_SECRET=另一个至少32位随机字符串
