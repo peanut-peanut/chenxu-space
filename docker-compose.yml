@@ -24,6 +24,7 @@ services:
       context: .
       dockerfile: apps/server/Dockerfile
     container_name: chenxu-space-server
+    command: ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/src/main.js"]
     restart: unless-stopped
     environment:
       NODE_ENV: production
