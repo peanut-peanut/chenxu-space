@@ -8,7 +8,10 @@
     "dev:server": "pnpm --filter server dev",
     "build": "pnpm --filter @chenxu/types run build && pnpm --parallel --filter '!@chenxu/types' build",
     "seed": "pnpm --filter server seed",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "deploy": "scripts/deploy.sh all",
+    "deploy:web": "scripts/deploy.sh web",
+    "deploy:server": "scripts/deploy.sh server"
   },
   "devDependencies": {
     "typescript": "^5.5.4"
