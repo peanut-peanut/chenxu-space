@@ -1,0 +1,106 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pack release
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=node_modules \
+            --exclude='**/node_modules' \
+            --exclude='**/dist' \
+            --exclude=.env \
+            --exclude=apps/server/.env \
+            --exclude=.DS_Store \
+            -czf chenxu-space-deploy.tgz \
+            .
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload release
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          scp -P "$SSH_PORT" -i ~/.ssh/deploy_key chenxu-space-deploy.tgz "$SSH_USER@$SSH_HOST:/tmp/chenxu-space-deploy.tgz"
+
+      - name: Activate release
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+        run: |
+          ssh -p "$SSH_PORT" -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+
+          APP_DIR=/opt/chenxu-space
+          BACKUP_DIR=/root/deploy-backups
+          RELEASE_ARCHIVE=/tmp/chenxu-space-deploy.tgz
+          TS=$(date +%Y%m%d-%H%M%S)
+
+          if [ ! -f "$APP_DIR/.env" ]; then
+            echo "Missing $APP_DIR/.env; refusing to deploy without production environment variables." >&2
+            exit 1
+          fi
+
+          mkdir -p "$BACKUP_DIR"
+          cp "$APP_DIR/.env" /tmp/chenxu-space.env
+          if [ -d "$APP_DIR/nginx/ssl" ]; then
+            rm -rf /tmp/chenxu-space-ssl
+            cp -a "$APP_DIR/nginx/ssl" /tmp/chenxu-space-ssl
+          fi
+
+          cd "$APP_DIR"
+          if docker compose version >/dev/null 2>&1; then
+            COMPOSE="docker compose"
+          else
+            COMPOSE="docker-compose"
+          fi
+          $COMPOSE down
+
+          mv "$APP_DIR" "$BACKUP_DIR/chenxu-space-$TS"
+          mkdir -p "$APP_DIR"
+          tar -xzf "$RELEASE_ARCHIVE" -C "$APP_DIR"
+          cp /tmp/chenxu-space.env "$APP_DIR/.env"
+          if [ -d /tmp/chenxu-space-ssl ]; then
+            mkdir -p "$APP_DIR/nginx"
+            cp -a /tmp/chenxu-space-ssl "$APP_DIR/nginx/ssl"
+          fi
+
+          cd "$APP_DIR"
+          $COMPOSE up -d --build
+          $COMPOSE ps
+          REMOTE
+
+      - name: Health check
+        run: |
+          curl --fail --show-error --silent --max-time 20 https://chenxu.xyz/api/health
