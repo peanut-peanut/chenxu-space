@@ -211,6 +211,26 @@ curl https://chenxu.xyz/api/health
 
 ---
 
+## 本地一键部署
+
+如果 GitHub Actions 暂时不可用，可以在本地通过 SSH 直接发布到服务器：
+
+```bash
+pnpm deploy          # 全量发布
+pnpm deploy:web      # 只发布前端 web
+pnpm deploy:server   # 只发布后端 server
+```
+
+默认发布到 `root@47.94.146.17:/opt/chenxu-space`，会保留服务器上的生产 `.env`、SSL 证书和 MySQL volume，并在发布后检查 `https://chenxu.xyz/api/health`。
+
+也可以用环境变量覆盖目标服务器：
+
+```bash
+DEPLOY_HOST=1.2.3.4 DEPLOY_USER=root DEPLOY_PORT=22 pnpm deploy:web
+```
+
+---
+
 ## 常用运维命令
 
 ```bash
