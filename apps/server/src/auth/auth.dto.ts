@@ -4,12 +4,12 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
-  IsMobilePhone,
+  Matches,
   IsUrl,
 } from 'class-validator';
 
 export class RegisterDto {
-  @IsMobilePhone('zh-CN', {}, { message: '手机号格式不正确' })
+  @Matches(/^1\d{10}$/, { message: '手机号格式不正确' })
   phone: string;
 
   @IsOptional()
@@ -33,7 +33,7 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @IsMobilePhone('zh-CN', {}, { message: '手机号格式不正确' })
+  @Matches(/^1\d{10}$/, { message: '手机号格式不正确' })
   phone: string;
 
   @IsString()

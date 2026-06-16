@@ -24,7 +24,7 @@ export function RegisterPage() {
   const validate = () => {
     const errs: Record<string, string> = {}
     if (!form.phone.trim()) errs.phone = '手机号不能为空'
-    else if (!/^1[3-9]\d{9}$/.test(form.phone)) errs.phone = '手机号格式不正确'
+    else if (!/^1\d{10}$/.test(form.phone)) errs.phone = '手机号格式不正确'
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = '邮箱格式不正确'
     if (!form.nickname.trim()) errs.nickname = '昵称不能为空'
     if (form.password.length < 8) errs.password = '密码至少8位'
