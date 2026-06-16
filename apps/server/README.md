@@ -20,9 +20,11 @@
 src/
 ├── auth/             # 登录、注册、Token 刷新、JWT 策略
 ├── users/            # 用户资料（GET/PATCH /users/me）
-├── thoughts/         # 想法（发布/点赞/评论）
+├── thoughts/         # 日常动态（日常/运动/饮食/投资/文献/想法）
 ├── articles/         # 文章（CRUD + 分类/标签/浏览数）
 ├── resources/        # 资源（OSS 预签名 + 资源记录）
+├── cats/             # 猫猫照片墙（媒体上传 + 展示）
+├── folders/          # 资源文件夹
 ├── common/
 │   ├── decorators/   # @Public()、@CurrentUser()
 │   ├── filters/      # 全局异常过滤器
@@ -60,6 +62,10 @@ OSS_ACCESS_KEY_SECRET=your-access-key-secret
 OSS_BUCKET=my-pan-disk
 OSS_REGION=oss-cn-beijing
 OSS_ENDPOINT=oss-cn-beijing.aliyuncs.com
+
+ADMIN_PHONE=12200001116
+ADMIN_PASSWORD=<管理员密码>
+ADMIN_NICKNAME=chenxu
 ```
 
 ### 2. 初始化数据库
@@ -81,10 +87,11 @@ npx prisma studio
 # 在 monorepo 根目录执行
 pnpm seed
 
-# 默认账号：admin@peanutwcx.xyz / Admin@2024!
 # 可通过环境变量覆盖：
-ADMIN_EMAIL=me@example.com ADMIN_PASSWORD=MyPass123! pnpm seed
+ADMIN_PHONE=12200001116 ADMIN_PASSWORD=MyPass123! ADMIN_NICKNAME=chenxu pnpm seed
 ```
+
+手机号校验规则为 `1` 开头的 11 位数字。seed 只会创建不存在的手机号，不会覆盖已有账号。
 
 ### 4. 启动开发服务器
 
@@ -123,15 +130,20 @@ pnpm --filter server run build
 | GET | `/api/users/me` | 获取当前用户信息 | 需登录 |
 | PATCH | `/api/users/me` | 更新昵称/头像 | 需登录 |
 
-### 想法
+### 日常动态
 
 | 方法 | 路径 | 说明 | 权限 |
 |------|------|------|------|
-| GET | `/api/thoughts` | 获取想法列表（分页） | 公开 |
-| POST | `/api/thoughts` | 发布想法（支持图片） | 需 admin |
+| GET | `/api/thoughts` | 获取动态列表，支持分页和类型筛选 | 公开 |
+| GET | `/api/thoughts/:id` | 获取动态详情 | 公开 |
+| POST | `/api/thoughts` | 发布动态（支持图片、运动字段） | 需 admin |
 | POST | `/api/thoughts/:id/like` | 点赞/取消点赞 | 需登录 |
+| POST | `/api/thoughts/:id/dislike` | 踩一下/取消 | 需登录 |
 | GET | `/api/thoughts/:id/comments` | 获取评论 | 公开 |
 | POST | `/api/thoughts/:id/comments` | 发表评论 | 需登录 |
+| DELETE | `/api/thoughts/:id` | 软删除动态 | 需 admin |
+
+动态类型：`daily`、`sport`、`diet`、`investment`、`literature`、`idea`。运动动态可附带 `sportType`、`sportDuration`、`sportCalories`。
 
 ### 文章
 
@@ -150,9 +162,24 @@ pnpm --filter server run build
 |------|------|------|------|
 | GET | `/api/resources` | 资源列表（分页、类型筛选） | 公开 |
 | GET | `/api/resources/categories` | 资源分类列表 | 公开 |
-| GET | `/api/resources/presign` | 获取 OSS 预签名上传 URL | 需登录 |
+| POST | `/api/resources/upload` | 获取 OSS 上传信息（返回 `uploadUrl` 和 `publicUrl`） | 需登录 |
+| POST | `/api/resources/presign` | 获取 OSS 预签名上传 URL | 需登录 |
+| POST | `/api/resources/avatar/presign` | 获取头像上传 URL | 需登录 |
 | POST | `/api/resources` | 上传完成后保存资源记录 | 需登录 |
 | DELETE | `/api/resources/:id` | 删除资源 | 需 admin |
+
+### 猫猫照片墙
+
+| 方法 | 路径 | 说明 | 权限 |
+|------|------|------|------|
+| GET | `/api/cats` | 获取猫猫资料（蛋黄、六六） | 公开 |
+| GET | `/api/cats/media` | 获取照片墙媒体列表 | 公开 |
+| POST | `/api/cats/media/upload` | 获取猫猫媒体上传信息 | 需 admin |
+| POST | `/api/cats/media/presign` | 获取猫猫媒体预签名 URL | 需 admin |
+| POST | `/api/cats/media` | 保存猫猫媒体记录 | 需 admin |
+| DELETE | `/api/cats/media/:id` | 删除猫猫媒体 | 需 admin |
+
+猫猫资料固定为：蛋黄（短毛金渐层，母猫，2023-04-08）和六六（长毛橘猫，公猫，2024-06-06）。
 
 ## 响应格式
 
@@ -160,7 +187,7 @@ pnpm --filter server run build
 
 ```json
 {
-  "code": 0,
+  "code": 200,
   "message": "ok",
   "data": { ... }
 }
@@ -181,7 +208,8 @@ pnpm --filter server run build
 - 默认所有路由需要 JWT 认证（全局 `JwtAuthGuard`）
 - 用 `@Public()` 装饰器标记公开路由
 - access token 有效期 15 分钟，refresh token 有效期 7 天
-- refresh token 存储在数据库，logout 时主动失效
+- access token 和 refresh token 通过 HttpOnly Cookie 下发
+- 业务异常统一返回 HTTP 200，并通过响应体 `code` 表示错误码；未被业务包装的异常仍可能返回对应 HTTP 状态码
 
 ## 数据库迁移（生产环境）
 

@@ -1,6 +1,6 @@
 # peanutwcx.xyz
 
-个人网站，包含想法、文章、资源等模块。
+个人网站，包含日常动态、猫猫照片墙、资源、文章和个人中心等模块。
 
 **技术栈：** React 19 + Vite 6 + Tailwind CSS v4 + TanStack Router/Query（前端）；NestJS + Prisma + MySQL 8（后端）；Docker Compose + Nginx + SSL（部署）
 
@@ -60,7 +60,7 @@ CORS_ORIGIN=http://localhost:5173
 DATABASE_URL="mysql://chenxu:<你的MYSQL_PASSWORD>@localhost:3306/chenxu_space"
 JWT_SECRET=<任意长随机字符串>
 JWT_REFRESH_SECRET=<任意长随机字符串>
-ADMIN_EMAIL=admin@peanutwcx.xyz
+ADMIN_PHONE=12200001116
 ADMIN_PASSWORD=<管理员密码>
 ADMIN_NICKNAME=chenxu
 ```
@@ -87,6 +87,8 @@ cd ../..
 pnpm seed
 ```
 
+管理员账号由 `apps/server/.env` 中的 `ADMIN_PHONE`、`ADMIN_PASSWORD`、`ADMIN_NICKNAME` 控制。手机号校验规则为 `1` 开头的 11 位数字。
+
 ### 5. 启动开发服务器（推荐分开启动）
 
 ```bash
@@ -100,6 +102,14 @@ pnpm --filter server start:dev
 - 前端：http://localhost:5173
 - 后端：http://localhost:3000
 - 前端 `/api/*` 请求通过 Vite 代理到后端
+
+如果只是重启本地后端，通常只需要：
+
+```bash
+pnpm --filter server start:dev
+```
+
+只有数据库容器未启动、共享类型变更、或新增迁移时，才需要分别执行 MySQL 启动、`@chenxu/types` 构建或 Prisma migrate。
 
 ### 6. 常见本地启动问题
 
@@ -118,7 +128,7 @@ pnpm --filter server start:dev
 | `pnpm dev:web` | 仅启动前端 |
 | `pnpm dev:server` | 仅启动后端 |
 | `pnpm build` | 构建所有包 |
-| `pnpm seed` | 创建管理员账号 |
+| `pnpm seed` | 创建管理员账号（不会覆盖已有手机号） |
 | `pnpm lint` | 全仓库 lint |
 
 ---
@@ -127,7 +137,7 @@ pnpm --filter server start:dev
 
 ### 环境要求
 
-- Docker & Docker Compose v2
+- Docker & Docker Compose（推荐 v2；旧服务器可能是 `docker-compose` v1）
 - 域名已解析到服务器 IP
 - 开放 80、443 端口
 
@@ -154,6 +164,10 @@ OSS_ACCESS_KEY_SECRET=阿里云AccessKeySecret
 OSS_BUCKET=my-pan-disk
 OSS_REGION=oss-cn-beijing
 OSS_ENDPOINT=oss-cn-beijing.aliyuncs.com
+
+ADMIN_PHONE=12200001116
+ADMIN_PASSWORD=<管理员密码>
+ADMIN_NICKNAME=chenxu
 ```
 
 ### 3. 申请 SSL 证书
@@ -185,13 +199,16 @@ docker compose up -d --build
 
 启动顺序：MySQL → Server（自动 migrate）→ Web → Nginx
 
+低内存服务器不要在远端执行前端 Vite 构建。当前服务器约 1.6 GB 内存，建议先在本地执行 `pnpm --filter web build`，再将 `apps/web/dist` 打进轻量 nginx 镜像，或使用 `scripts/deploy.sh` 的发布流程。
+
 ### 5. 创建管理员账号
 
 ```bash
 docker compose exec server sh -c "node node_modules/.bin/prisma db seed"
 # 或指定账号信息：
-docker compose exec -e ADMIN_EMAIL=you@example.com \
+docker compose exec -e ADMIN_PHONE=12200001116 \
   -e ADMIN_PASSWORD=YourPassword123! \
+  -e ADMIN_NICKNAME=chenxu \
   server sh -c "node node_modules/.bin/prisma db seed"
 ```
 
@@ -240,6 +257,9 @@ docker compose logs -f
 # 重启单个服务
 docker compose restart server
 
+# 旧服务器如没有 docker compose，使用 docker-compose
+docker-compose ps
+
 # 仅重新构建并重启后端（代码更新后）
 docker compose up -d --build server
 
@@ -281,6 +301,9 @@ docker compose exec nginx nginx -s reload
 | `OSS_BUCKET` | OSS Bucket 名称 |
 | `OSS_REGION` | OSS 地域（如 `oss-cn-beijing`） |
 | `OSS_ENDPOINT` | OSS Endpoint（如 `oss-cn-beijing.aliyuncs.com`） |
+| `ADMIN_PHONE` | seed 管理员手机号 |
+| `ADMIN_PASSWORD` | seed 管理员密码 |
+| `ADMIN_NICKNAME` | seed 管理员昵称 |
 
 ### `apps/server/.env`（本地开发使用）
 
