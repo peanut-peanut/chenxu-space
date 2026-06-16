@@ -2,7 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import {
-  Home, BookOpen, Lightbulb, FolderOpen, HardDrive, LogIn, LogOut,
+  Home, CalendarDays, Cat, FolderOpen, LogIn,
   Settings, Menu, X, Sparkles
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
@@ -13,17 +13,13 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/', label: '首页', icon: Home },
-  { to: '/thoughts', label: '想法', icon: Lightbulb },
-  { to: '/articles', label: '文章', icon: BookOpen },
+  { to: '/daily', label: '日常', icon: CalendarDays },
+  { to: '/cats', label: '猫猫', icon: Cat },
   { to: '/resources', label: '资源', icon: FolderOpen },
 ]
 
-const adminNavItems = [
-  { to: '/files', label: '文件', icon: HardDrive },
-]
-
 export function Navbar() {
-  const { user, isLoggedIn, logout } = useAuthStore()
+  const { user, isLoggedIn } = useAuthStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const router = useRouterState()
   const pathname = router.location.pathname
@@ -37,31 +33,13 @@ export function Navbar() {
             <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)] flex items-center justify-center shadow-[0_0_15px_var(--color-accent-glow)]">
               <Sparkles size={14} className="text-white" />
             </span>
-            <span className="font-semibold text-sm gradient-text">chenxu.xyz</span>
+            <span className="font-semibold text-sm gradient-text">peanutwcx.xyz</span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map(({ to, label, icon: Icon }) => {
               const active = pathname === to || (to !== '/' && pathname.startsWith(to))
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-sm)] text-sm transition-all duration-200',
-                    active
-                      ? 'text-[var(--color-accent)] bg-[var(--color-accent-glow)]'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]'
-                  )}
-                >
-                  <Icon size={15} />
-                  {label}
-                </Link>
-              )
-            })}
-            {user?.role === 'admin' && adminNavItems.map(({ to, label, icon: Icon }) => {
-              const active = pathname.startsWith(to)
               return (
                 <Link
                   key={to}
@@ -95,9 +73,6 @@ export function Navbar() {
                 <Link to="/profile">
                   <Avatar src={user?.avatar} alt={user?.nickname ?? ''} size="sm" />
                 </Link>
-                <Button variant="ghost" size="icon-sm" onClick={logout}>
-                  <LogOut size={15} />
-                </Button>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-2">
@@ -147,27 +122,16 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            {user?.role === 'admin' && adminNavItems.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)] transition-colors"
-              >
-                <Icon size={16} />
-                {label}
-              </Link>
-            ))}
             <div className="h-px bg-[var(--color-border)] my-1" />
             {isLoggedIn() ? (
-              <div className="flex items-center gap-2 px-3 py-2">
+              <Link
+                to="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-2)] transition-colors"
+              >
                 <Avatar src={user?.avatar} alt={user?.nickname ?? ''} size="sm" />
                 <span className="text-sm text-[var(--color-text-primary)]">{user?.nickname}</span>
-                <Button variant="ghost" size="sm" className="ml-auto" onClick={() => { logout(); setMenuOpen(false) }}>
-                  <LogOut size={14} />
-                  退出
-                </Button>
-              </div>
+              </Link>
             ) : (
               <div className="flex gap-2 px-3 py-2">
                 <Link to="/login" className="flex-1" onClick={() => setMenuOpen(false)}>

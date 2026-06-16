@@ -25,15 +25,25 @@ export interface RegisterDto {
 }
 
 // ===== Thought =====
+export type ThoughtType = 'daily' | 'sport' | 'diet' | 'investment' | 'literature' | 'idea'
+export type SportType = 'basketball' | 'fitness' | 'swimming'
+
 export interface Thought {
   id: number
   content: string
   images: string[]
+  type: ThoughtType
+  sportType: SportType | null
+  sportDuration: number | null
+  sportCalories: number | null
   userId: number
   user: Pick<User, 'id' | 'nickname' | 'avatar'>
   likesCount: number
+  dislikesCount: number
   commentsCount: number
   liked: boolean
+  disliked: boolean
+  deletedAt?: string | null
   createdAt: string
 }
 
@@ -101,6 +111,41 @@ export interface PresignResult {
   uploadUrl: string
   key: string
   publicUrl: string
+}
+
+// ===== Cats =====
+export type CatId = 'danhuang' | 'liuliu'
+export type CatMediaType = 'image' | 'video'
+
+export interface CatProfile {
+  id: CatId
+  name: string
+  breed: string
+  gender: string
+  birthday: string
+}
+
+export interface CatMedia {
+  id: number
+  name: string
+  url: string
+  key: string
+  type: CatMediaType
+  size: number
+  cat: CatId
+  shotAt: string | null
+  note: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CatUploadResult {
+  uploadUrl?: string
+  key: string
+  publicUrl: string
+  name: string
+  size?: number
+  type: CatMediaType
 }
 
 // ===== Folders =====

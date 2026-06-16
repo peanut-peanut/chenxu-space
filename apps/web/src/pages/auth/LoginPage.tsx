@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { Lock, Phone, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { Lock, Phone, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/store/auth'
@@ -42,15 +42,6 @@ export function LoginPage() {
         transition={{ duration: 0.35 }}
         className="w-full max-w-md"
       >
-        <div className="flex justify-center mb-8">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)] flex items-center justify-center shadow-[0_0_20px_var(--color-accent-glow)]">
-              <Sparkles size={18} className="text-white" />
-            </span>
-            <span className="font-bold text-lg gradient-text">chenxu.xyz</span>
-          </Link>
-        </div>
-
         <div className="glow-border rounded-[var(--radius-xl)] bg-[var(--color-surface)] p-8">
           <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">欢迎回来</h1>
           <p className="text-sm text-[var(--color-text-secondary)] mb-6">登录你的账号继续</p>
@@ -75,7 +66,7 @@ export function LoginPage() {
                 </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="请输入密码"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   required

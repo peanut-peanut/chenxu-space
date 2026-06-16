@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, BookOpen, Lightbulb, FolderOpen, Github, Mail } from 'lucide-react'
+import { ArrowRight, CalendarDays, FolderOpen, Github, Mail } from 'lucide-react'
 import { ParticleCanvas } from '@/components/common/ParticleCanvas'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,19 +8,11 @@ import { PageLayout } from '@/components/layout/PageLayout'
 
 const features = [
   {
-    icon: Lightbulb,
-    title: '想法',
-    desc: '记录生活碎片与瞬间灵感，分享日常的所思所感',
-    to: '/thoughts',
-    color: 'from-violet-500/20 to-purple-500/10',
-    border: 'hover:border-violet-500/40',
-  },
-  {
-    icon: BookOpen,
-    title: '文章',
-    desc: '深度技术分享与思考，探索代码世界的边界',
-    to: '/articles',
-    color: 'from-cyan-500/20 to-blue-500/10',
+    icon: CalendarDays,
+    title: '日常',
+    desc: '日常、运动、饮食、投资、文献与想法都收在一条时间流里',
+    to: '/daily',
+    color: 'from-cyan-500/20 to-violet-500/10',
     border: 'hover:border-cyan-500/40',
   },
   {
@@ -74,20 +66,18 @@ export function HomePage() {
 
             <motion.p variants={item} className="text-lg text-[var(--color-text-secondary)] leading-relaxed mb-8 max-w-xl">
               一个热爱代码与设计的开发者。这里记录我的思考、创作与探索——
-              技术文章、生活碎片、以及一切值得留存的东西。
+              日常片段、阅读记录、投资观察、以及一切值得留存的东西。
             </motion.p>
 
             <motion.div variants={item} className="flex items-center gap-3 flex-wrap">
-              <Link to="/thoughts">
+              <Link to="/daily">
                 <Button size="lg" className="gap-2">
-                  探索想法
+                  看看日常
                   <ArrowRight size={16} />
                 </Button>
               </Link>
-              <Link to="/articles">
-                <Button variant="secondary" size="lg">
-                  阅读文章
-                </Button>
+              <Link to="/resources">
+                <Button variant="secondary" size="lg">浏览资源</Button>
               </Link>
             </motion.div>
 
@@ -101,13 +91,13 @@ export function HomePage() {
                 <Github size={20} />
               </a>
               <a
-                href="mailto:hi@chenxu.xyz"
+                href="mailto:hi@peanutwcx.xyz"
                 className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 <Mail size={20} />
               </a>
               <span className="text-[var(--color-border-2)] select-none">|</span>
-              <span className="text-xs text-[var(--color-text-tertiary)]">chenxu.xyz</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">peanutwcx.xyz</span>
             </motion.div>
           </motion.div>
         </div>
@@ -138,7 +128,7 @@ export function HomePage() {
             <p className="text-[var(--color-text-secondary)] text-sm">探索不同维度的内容</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {features.map(({ icon: Icon, title, desc, to, color, border }) => (
               <motion.div key={to} variants={item}>
                 <Link to={to} className="block h-full">
@@ -168,7 +158,7 @@ export function HomePage() {
       {/* Footer */}
       <footer className="border-t border-[var(--color-border)] py-8 text-center">
         <p className="text-xs text-[var(--color-text-tertiary)]">
-          © {new Date().getFullYear()} chenxu.xyz — Built with ♥
+          © {new Date().getFullYear()} peanutwcx.xyz — Built with ♥
         </p>
       </footer>
     </PageLayout>

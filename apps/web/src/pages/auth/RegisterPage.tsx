@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
-import { Mail, Lock, User, Phone, Eye, EyeOff, Sparkles, Camera, Loader } from 'lucide-react'
+import { Mail, Lock, User, Phone, Eye, EyeOff, Camera, Loader } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar } from '@/components/ui/avatar'
@@ -45,7 +45,10 @@ export function RegisterPage() {
       const { uploadUrl, publicUrl } = presignRes.data
       await fetch(uploadUrl, {
         method: 'PUT',
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+          'x-oss-object-acl': 'public-read',
+        },
         body: file,
       })
       setForm((f) => ({ ...f, avatar: publicUrl }))
@@ -90,15 +93,6 @@ export function RegisterPage() {
         transition={{ duration: 0.35 }}
         className="w-full max-w-md"
       >
-        <div className="flex justify-center mb-8">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-cyan)] flex items-center justify-center shadow-[0_0_20px_var(--color-accent-glow)]">
-              <Sparkles size={18} className="text-white" />
-            </span>
-            <span className="font-bold text-lg gradient-text">chenxu.xyz</span>
-          </Link>
-        </div>
-
         <div className="glow-border rounded-[var(--radius-xl)] bg-[var(--color-surface)] p-8">
           <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">创建账号</h1>
           <p className="text-sm text-[var(--color-text-secondary)] mb-6">加入这里，留下你的足迹</p>
@@ -112,16 +106,27 @@ export function RegisterPage() {
                 className="relative group"
                 disabled={avatarUploading}
               >
-                <Avatar src={avatarPreview || undefined} alt={form.nickname || '头像'} size="xl" />
-                <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  {avatarUploading
-                    ? <Loader size={18} className="text-white animate-spin" />
-                    : <Camera size={18} className="text-white" />
-                  }
-                </div>
+                {avatarPreview ? (
+                  <>
+                    <Avatar src={avatarPreview} alt={form.nickname || '头像'} size="xl" />
+                    <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {avatarUploading
+                        ? <Loader size={18} className="text-white animate-spin" />
+                        : <Camera size={18} className="text-white" />
+                      }
+                    </div>
+                  </>
+                ) : (
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full border border-dashed border-[var(--color-border-2)] bg-[var(--color-surface-2)] text-[var(--color-text-tertiary)] transition-colors group-hover:border-[var(--color-accent)] group-hover:text-[var(--color-accent)]">
+                    {avatarUploading
+                      ? <Loader size={18} className="animate-spin" />
+                      : <Camera size={18} />
+                    }
+                  </span>
+                )}
               </button>
               <span className="text-xs text-[var(--color-text-tertiary)]">
-                {avatarUploading ? '上传中...' : '点击上传头像（选填）'}
+                {avatarUploading ? '上传中...' : '点击上传头像'}
               </span>
               {errors.avatar && <p className="text-xs text-[var(--color-danger)]">{errors.avatar}</p>}
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
@@ -148,9 +153,9 @@ export function RegisterPage() {
               error={errors.nickname}
             />
 
-            {/* 邮箱 选填 */}
+            {/* 邮箱 */}
             <Input
-              label="邮箱（选填）"
+              label="邮箱"
               type="email"
               placeholder="hi@example.com"
               icon={<Mail size={15} />}

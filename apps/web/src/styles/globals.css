@@ -186,3 +186,48 @@ body {
   background: rgba(109, 93, 232, 0.25);
   color: #1e1b4b;
 }
+
+.daily-detail-modal .ant-modal-content {
+  overflow: hidden;
+  padding: 0;
+  border-radius: 18px;
+  border: 0;
+  outline: none;
+  background: var(--color-surface);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+.daily-detail-modal .ant-modal-content:hover,
+.daily-detail-modal .ant-modal-content:focus,
+.daily-detail-modal .ant-modal-content:focus-visible,
+.daily-detail-modal .ant-modal-content:focus-within {
+  border: 0;
+  outline: none;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+.daily-detail-modal article,
+.daily-detail-modal section,
+.daily-detail-modal img,
+.daily-detail-modal button {
+  outline: none;
+  box-shadow: none;
+}
+
+.daily-detail-modal button:focus,
+.daily-detail-modal button:focus-visible,
+.daily-detail-modal button:active,
+.daily-detail-modal .ant-modal-close,
+.daily-detail-modal .ant-modal-close:hover,
+.daily-detail-modal .ant-modal-close:focus,
+.daily-detail-modal .ant-modal-close:focus-visible,
+.daily-detail-modal .ant-modal-close:active {
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.daily-detail-modal .ant-modal-close::before,
+.daily-detail-modal .ant-modal-close::after {
+  display: none;
+}

@@ -20,6 +20,7 @@ model User {
 
   thoughts        Thought[]
   thoughtLikes    ThoughtLike[]
+  thoughtDislikes ThoughtDislike[]
   thoughtComments ThoughtComment[]
 
   @@map("users")
@@ -36,18 +37,42 @@ model Thought {
   id          Int      @id @default(autoincrement())
   content     String   @db.Text
   images      Json     @default("[]")
+  type        ThoughtType @default(daily)
+  sportType   SportType?
+  sportDuration Int?
+  sportCalories Int?
   userId      Int
   likesCount  Int      @default(0)
+  dislikesCount Int    @default(0)
+  deletedAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes    ThoughtLike[]
+  dislikes ThoughtDislike[]
   comments ThoughtComment[]
 
   @@index([createdAt])
+  @@index([type, createdAt])
+  @@index([deletedAt, createdAt])
   @@index([userId])
   @@map("thoughts")
+}
+
+enum ThoughtType {
+  daily
+  sport
+  diet
+  investment
+  literature
+  idea
+}
+
+enum SportType {
+  basketball
+  fitness
+  swimming
 }
 
 model ThoughtLike {
@@ -61,6 +86,19 @@ model ThoughtLike {
 
   @@unique([thoughtId, userId])
   @@map("thought_likes")
+}
+
+model ThoughtDislike {
+  id        Int      @id @default(autoincrement())
+  thoughtId Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  thought Thought @relation(fields: [thoughtId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([thoughtId, userId])
+  @@map("thought_dislikes")
 }
 
 model ThoughtComment {
@@ -170,6 +208,31 @@ enum ResourceType {
   image
   video
   file
+}
+
+// ── Cats ───────────────────────────────────────────────────────────────────
+
+model CatMedia {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(255)
+  url       String       @db.VarChar(500)
+  key       String       @db.VarChar(500)
+  type      ResourceType
+  size      Int
+  cat       CatId
+  shotAt    DateTime?
+  note      String?      @db.VarChar(500)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([cat, shotAt, createdAt])
+  @@index([type, createdAt])
+  @@map("cat_media")
+}
+
+enum CatId {
+  danhuang
+  liuliu
 }
 
 // ── Folders ────────────────────────────────────────────────────────────────

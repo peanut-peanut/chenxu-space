@@ -5,7 +5,7 @@ import {
   Folder, FolderOpen, FileText, Image, Video, Plus, Upload as UploadIcon,
   Pencil, Trash2, ChevronRight, Download, Play,
 } from 'lucide-react'
-import { Modal, Input, Switch, Upload, theme, ConfigProvider, Progress } from 'antd'
+import { Modal, Input, Switch, Upload, Progress } from 'antd'
 import type { UploadFile } from 'antd'
 import { PageLayout, PageContainer, SectionHeader } from '@/components/layout/PageLayout'
 import { Card, CardContent } from '@/components/ui/card'
@@ -426,9 +426,19 @@ function UploadModal({ open, folderId, onClose }: {
   )
 }
 
-// ─── FilesPage ─────────────────────────────────────────────────────────────────
+// ─── Files manager ─────────────────────────────────────────────────────────────
 
-export function FilesPage() {
+interface FilesManagerContentProps {
+  showHeader?: boolean
+  title?: string
+  subtitle?: string
+}
+
+export function FilesManagerContent({
+  showHeader = true,
+  title = '文件',
+  subtitle = '文件夹与文件管理',
+}: FilesManagerContentProps) {
   const { isAdmin } = useAuthStore()
   const admin = isAdmin()
   const qc = useQueryClient()
@@ -509,13 +519,12 @@ export function FilesPage() {
   const isEmpty = folders.length === 0 && files.length === 0
 
   return (
-    <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+    <>
       {contextHolder}
-      <PageLayout>
-        <PageContainer>
+      {showHeader && (
           <SectionHeader
-            title="文件"
-            subtitle="文件夹与文件管理"
+            title={title}
+            subtitle={subtitle}
             action={
               admin ? (
                 <div className="flex items-center gap-2">
@@ -535,6 +544,24 @@ export function FilesPage() {
               ) : undefined
             }
           />
+      )}
+
+      {!showHeader && admin && (
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
+          {currentLevel <= 3 && (
+            <Button size="sm" variant="secondary" onClick={() => setShowCreate(true)}>
+              <Plus size={13} />
+              新建文件夹
+            </Button>
+          )}
+          {currentFolderId !== null && (
+            <Button size="sm" onClick={() => setShowUpload(true)}>
+              <UploadIcon size={13} />
+              上传文件
+            </Button>
+          )}
+        </div>
+      )}
 
           <div className="mb-6">
             <Breadcrumb trail={breadcrumb} onNavigate={navigateTo} />
@@ -591,7 +618,6 @@ export function FilesPage() {
               )}
             </div>
           )}
-        </PageContainer>
 
         <CreateFolderModal
           open={showCreate}
@@ -614,7 +640,18 @@ export function FilesPage() {
           file={previewFile}
           onClose={() => setPreviewFile(null)}
         />
-      </PageLayout>
-    </ConfigProvider>
+    </>
+  )
+}
+
+// ─── FilesPage ─────────────────────────────────────────────────────────────────
+
+export function FilesPage() {
+  return (
+    <PageLayout>
+      <PageContainer>
+        <FilesManagerContent title="资源" subtitle="文件归档与预览" />
+      </PageContainer>
+    </PageLayout>
   )
 }

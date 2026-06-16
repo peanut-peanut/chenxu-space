@@ -1,4 +1,4 @@
-# chenxu.xyz — 前端
+# peanutwcx.xyz — 前端
 
 基于 React 19 + Vite 6 + Tailwind CSS v4 的个人网站前端。
 

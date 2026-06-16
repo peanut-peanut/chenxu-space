@@ -7,8 +7,12 @@ import {
   Query,
   Param,
   ParseIntPipe,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ResourcesService } from './resources.service';
+import type { UploadedResourceFile } from './resources.service';
 import { PresignDto, SaveResourceDto, ResourceQueryDto } from './resources.dto';
 import { Public, AdminOnly } from '../common/decorators/auth.decorator';
 
@@ -32,6 +36,13 @@ export class ResourcesController {
   @Post('presign')
   presign(@Body() dto: PresignDto) {
     return this.resources.generatePresignUrl(dto.filename, dto.contentType);
+  }
+
+  @AdminOnly()
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  upload(@UploadedFile() file: UploadedResourceFile | undefined) {
+    return this.resources.uploadFile(file);
   }
 
   @Public()

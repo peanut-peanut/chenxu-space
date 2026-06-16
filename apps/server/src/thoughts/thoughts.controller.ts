@@ -37,6 +37,12 @@ export class ThoughtsController {
     return this.thoughts.findAll(dto, user?.id);
   }
 
+  @OptionalAuth()
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user?: JwtUser) {
+    return this.thoughts.findOne(id, user?.id);
+  }
+
   @AdminOnly()
   @Post()
   create(@Body() dto: CreateThoughtDto, @CurrentUser() user: JwtUser) {
@@ -46,6 +52,11 @@ export class ThoughtsController {
   @Post(':id/like')
   like(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtUser) {
     return this.thoughts.toggleLike(id, user.id);
+  }
+
+  @Post(':id/dislike')
+  dislike(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtUser) {
+    return this.thoughts.toggleDislike(id, user.id);
   }
 
   @Public()
@@ -63,8 +74,9 @@ export class ThoughtsController {
     return this.thoughts.addComment(id, user.id, dto);
   }
 
+  @AdminOnly()
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtUser) {
-    return this.thoughts.delete(id, user.id, user.role);
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.thoughts.delete(id);
   }
 }

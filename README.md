@@ -1,4 +1,4 @@
-# chenxu.xyz
+# peanutwcx.xyz
 
 个人网站，包含想法、文章、资源等模块。
 
@@ -60,7 +60,7 @@ CORS_ORIGIN=http://localhost:5173
 DATABASE_URL="mysql://chenxu:<你的MYSQL_PASSWORD>@localhost:3306/chenxu_space"
 JWT_SECRET=<任意长随机字符串>
 JWT_REFRESH_SECRET=<任意长随机字符串>
-ADMIN_EMAIL=admin@chenxu.xyz
+ADMIN_EMAIL=admin@peanutwcx.xyz
 ADMIN_PASSWORD=<管理员密码>
 ADMIN_NICKNAME=chenxu
 ```
@@ -166,11 +166,11 @@ mkdir -p nginx/ssl
 apt install -y certbot
 
 # 申请证书（certbot standalone 模式，确保 80 端口未被占用）
-certbot certonly --standalone -d chenxu.xyz -d www.chenxu.xyz
+certbot certonly --standalone -d peanutwcx.xyz -d www.peanutwcx.xyz
 
 # 复制证书到项目目录
-cp /etc/letsencrypt/live/chenxu.xyz/fullchain.pem nginx/ssl/
-cp /etc/letsencrypt/live/chenxu.xyz/privkey.pem nginx/ssl/
+cp /etc/letsencrypt/live/peanutwcx.xyz/fullchain.pem nginx/ssl/
+cp /etc/letsencrypt/live/peanutwcx.xyz/privkey.pem nginx/ssl/
 
 # 设置权限
 chmod 644 nginx/ssl/fullchain.pem
@@ -206,7 +206,7 @@ docker compose logs -f server
 docker compose logs -f nginx
 
 # 测试 API
-curl https://chenxu.xyz/api/health
+curl https://peanutwcx.xyz/api/health
 ```
 
 ---
@@ -221,7 +221,7 @@ pnpm deploy:web      # 只发布前端 web
 pnpm deploy:server   # 只发布后端 server
 ```
 
-默认发布到 `root@47.94.146.17:/opt/chenxu-space`，会保留服务器上的生产 `.env`、SSL 证书和 MySQL volume，并在发布后检查 `https://chenxu.xyz/api/health`。
+默认发布到 `root@47.94.146.17:/opt/chenxu-space`，会保留服务器上的生产 `.env`、SSL 证书和 MySQL volume，并在发布后检查 `https://peanutwcx.xyz/api/health`。
 
 也可以用环境变量覆盖目标服务器：
 
@@ -259,8 +259,8 @@ cat backup_20240101.sql | docker compose exec -T mysql sh -c \
 
 # SSL 证书续期
 certbot renew --quiet
-cp /etc/letsencrypt/live/chenxu.xyz/fullchain.pem nginx/ssl/
-cp /etc/letsencrypt/live/chenxu.xyz/privkey.pem nginx/ssl/
+cp /etc/letsencrypt/live/peanutwcx.xyz/fullchain.pem nginx/ssl/
+cp /etc/letsencrypt/live/peanutwcx.xyz/privkey.pem nginx/ssl/
 docker compose exec nginx nginx -s reload
 ```
 
