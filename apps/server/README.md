@@ -1,4 +1,4 @@
-# chenxu.xyz — 后端
+# peanutwcx.xyz — 后端
 
 基于 NestJS + Prisma + MySQL 8 的个人网站后端 API。
 
@@ -81,7 +81,7 @@ npx prisma studio
 # 在 monorepo 根目录执行
 pnpm seed
 
-# 默认账号：admin@chenxu.xyz / Admin@2024!
+# 默认账号：admin@peanutwcx.xyz / Admin@2024!
 # 可通过环境变量覆盖：
 ADMIN_EMAIL=me@example.com ADMIN_PASSWORD=MyPass123! pnpm seed
 ```

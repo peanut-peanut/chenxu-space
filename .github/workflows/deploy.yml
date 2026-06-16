@@ -191,7 +191,7 @@ jobs:
 
       - name: Health check
         run: |
-          curl --fail --show-error --silent --max-time 20 https://chenxu.xyz/api/health
+          curl --fail --show-error --silent --max-time 20 https://peanutwcx.xyz/api/health
 
   skip:
     name: Skip deploy

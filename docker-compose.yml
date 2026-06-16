@@ -36,7 +36,7 @@ services:
       OSS_BUCKET: ${OSS_BUCKET}
       OSS_REGION: ${OSS_REGION}
       OSS_ENDPOINT: ${OSS_ENDPOINT}
-      CORS_ORIGIN: https://chenxu.xyz
+      CORS_ORIGIN: https://peanutwcx.xyz
     depends_on:
       mysql:
         condition: service_healthy

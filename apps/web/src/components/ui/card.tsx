@@ -11,8 +11,8 @@ export function Card({ className, hover, glow, ...props }: CardProps) {
     <div
       className={cn(
         'rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden',
-        hover && 'transition-all duration-300 hover:border-[var(--color-border-2)] hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]',
-        glow && 'hover:shadow-[0_0_40px_var(--color-accent-glow)]',
+        hover && 'transition-all duration-300 hover:border-[var(--color-border-2)] hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(0,0,0,0.18)]',
+        glow && 'hover:shadow-[0_0_18px_var(--color-accent-glow)]',
         className
       )}
       {...props}

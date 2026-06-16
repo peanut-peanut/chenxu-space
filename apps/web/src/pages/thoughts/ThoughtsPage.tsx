@@ -1,39 +1,97 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Heart, MessageCircle, Image, Send, X, Plus, Lightbulb } from 'lucide-react'
+import { Modal } from 'antd'
+import {
+  Heart,
+  Image,
+  X,
+  Plus,
+  CalendarDays,
+  Dumbbell,
+  Utensils,
+  TrendingUp,
+  FileText,
+  Lightbulb,
+  Trash2,
+  ThumbsDown,
+  LayoutList,
+  Columns3,
+  type LucideIcon,
+} from 'lucide-react'
 import { PageLayout, PageContainer, SectionHeader } from '@/components/layout/PageLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/input'
+import { Input, Textarea } from '@/components/ui/input'
 import { useAuthStore } from '@/store/auth'
 import { api } from '@/lib/api'
 import { formatDate, cn } from '@/lib/utils'
-import type { Thought, ThoughtComment, PaginatedResult, ApiResponse } from '@chenxu/types'
+import type { Thought, ThoughtType, PaginatedResult, ApiResponse, PresignResult } from '@chenxu/types'
 
-// ── API hooks ──────────────────────────────────────────────────────────────
-function useThoughts() {
-  return useQuery({
-    queryKey: ['thoughts'],
-    queryFn: () => api.get<never, ApiResponse<PaginatedResult<Thought>>>('/thoughts?pageSize=20'),
-    select: (res) => res.data.data,
-  })
+type SportType = 'basketball' | 'fitness' | 'swimming'
+type FeedLayout = 'list' | 'masonry'
+
+type ThoughtTypeMeta = {
+  value: ThoughtType
+  label: string
+  description: string
+  icon: LucideIcon
+  tone: string
 }
 
-function useComments(thoughtId: number, enabled: boolean) {
+type UploadedImage = {
+  id: string
+  name: string
+  previewUrl: string
+  publicUrl: string
+}
+
+const thoughtTypes: ThoughtTypeMeta[] = [
+  { value: 'daily', label: '日常', description: '生活片段', icon: CalendarDays, tone: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { value: 'sport', label: '运动', description: '训练与恢复', icon: Dumbbell, tone: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { value: 'diet', label: '饮食', description: '吃喝记录', icon: Utensils, tone: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { value: 'investment', label: '投资', description: '市场观察', icon: TrendingUp, tone: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+  { value: 'literature', label: '文献', description: '阅读摘要', icon: FileText, tone: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'idea', label: '想法', description: '灵感备忘', icon: Lightbulb, tone: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+]
+
+const typeByValue = Object.fromEntries(thoughtTypes.map((type) => [type.value, type])) as Record<ThoughtType, ThoughtTypeMeta>
+
+const sportTypeOptions: Array<{ value: SportType; label: string }> = [
+  { value: 'basketball', label: '篮球' },
+  { value: 'fitness', label: '健身' },
+  { value: 'swimming', label: '游泳' },
+]
+
+const sportTypeLabel: Record<SportType, string> = {
+  basketball: '篮球',
+  fitness: '健身',
+  swimming: '游泳',
+}
+
+function ossImageUrl(url: string, width: number) {
+  if (!url.includes('.aliyuncs.com/') || url.includes('x-oss-process=')) return url
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}x-oss-process=image/resize,w_${width}/quality,q_82/format,webp`
+}
+
+// ── API hooks ──────────────────────────────────────────────────────────────
+function useThoughts(type?: ThoughtType) {
   return useQuery({
-    queryKey: ['thoughts', thoughtId, 'comments'],
+    queryKey: ['thoughts', type ?? 'all'],
     queryFn: () =>
-      api.get<never, ApiResponse<ThoughtComment[]>>(`/thoughts/${thoughtId}/comments`),
-    select: (res) => res.data,
-    enabled,
+      api.get<never, ApiResponse<PaginatedResult<Thought>>>(
+        `/thoughts?pageSize=20${type ? `&type=${type}` : ''}`
+      ),
+    select: (res) => res.data.data,
   })
 }
 
 // ── Image grid ─────────────────────────────────────────────────────────────
 function ImageGrid({ images, onPreview }: { images: string[]; onPreview: (i: number) => void }) {
   if (!images.length) return null
+  const imageWidth = images.length === 1 ? 900 : images.length <= 4 ? 520 : 360
   const gridClass = images.length === 1
     ? 'grid-cols-1'
     : images.length === 2
@@ -43,21 +101,25 @@ function ImageGrid({ images, onPreview }: { images: string[]; onPreview: (i: num
     : 'grid-cols-3'
 
   return (
-    <div className={`grid gap-1 mt-3 ${gridClass} rounded-[var(--radius-md)] overflow-hidden`}>
+    <div className={cn(
+      `grid gap-1 mt-3 ${gridClass}`,
+      images.length > 1 && 'rounded-[var(--radius-md)] overflow-hidden'
+    )}>
       {images.map((url, i) => (
         <button
           key={i}
           onClick={() => onPreview(i)}
           className={cn(
             'aspect-square overflow-hidden group',
-            images.length === 1 && 'aspect-video max-w-sm'
+            images.length === 1 && 'aspect-video max-w-sm rounded-[var(--radius-md)]'
           )}
         >
           <img
-            src={url}
+            src={ossImageUrl(url, imageWidth)}
             alt=""
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
+            decoding="async"
           />
         </button>
       ))}
@@ -65,118 +127,69 @@ function ImageGrid({ images, onPreview }: { images: string[]; onPreview: (i: num
   )
 }
 
-// ── Comment section ────────────────────────────────────────────────────────
-function CommentSection({ thoughtId }: { thoughtId: number; onClose: () => void }) {
-  const { isLoggedIn, user } = useAuthStore()
-  const qc = useQueryClient()
-  const [text, setText] = useState('')
-  const { data: comments = [], isLoading } = useComments(thoughtId, true)
-
-  const postComment = useMutation({
-    mutationFn: (content: string) =>
-      api.post(`/thoughts/${thoughtId}/comments`, { content }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['thoughts', thoughtId, 'comments'] })
-      qc.invalidateQueries({ queryKey: ['thoughts'] })
-      setText('')
-    },
-  })
+// ── Thought card ───────────────────────────────────────────────────────────
+function SportMeta({ thought, className }: { thought: Thought; className?: string }) {
+  if (thought.type !== 'sport') return null
+  const hasMeta = thought.sportType || thought.sportDuration !== null || thought.sportCalories !== null
+  if (!hasMeta) return null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.25 }}
-      className="overflow-hidden"
-    >
-      <div className="border-t border-[var(--color-border)] mt-4 pt-4 space-y-3">
-        {isLoading ? (
-          <p className="text-xs text-[var(--color-text-tertiary)] text-center py-2">加载中...</p>
-        ) : comments.length === 0 ? (
-          <p className="text-xs text-[var(--color-text-tertiary)] text-center py-2">暂无评论</p>
-        ) : (
-          comments.map((c) => (
-            <div key={c.id} className="flex gap-2.5">
-              <Avatar src={c.user.avatar} alt={c.user.nickname} size="sm" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xs font-medium text-[var(--color-text-primary)]">{c.user.nickname}</span>
-                  <span className="text-[10px] text-[var(--color-text-tertiary)]">{formatDate(c.createdAt, { relative: true })}</span>
-                </div>
-                {c.parent && (
-                  <p className="text-xs text-[var(--color-text-tertiary)] mb-0.5">
-                    回复 <span className="text-[var(--color-accent)]">@{c.parent.user.nickname}</span>
-                  </p>
-                )}
-                <p className="text-sm text-[var(--color-text-secondary)]">{c.content}</p>
-              </div>
-            </div>
-          ))
-        )}
-
-        {isLoggedIn() ? (
-          <div className="flex gap-2 pt-1">
-            <Avatar src={user?.avatar} alt={user?.nickname ?? ''} size="sm" />
-            <div className="flex-1 flex gap-2">
-              <Textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="写下你的想法..."
-                className="min-h-[36px] max-h-24 text-xs py-2"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && text.trim()) {
-                    e.preventDefault()
-                    postComment.mutate(text.trim())
-                  }
-                }}
-              />
-              <Button
-                size="icon-sm"
-                onClick={() => text.trim() && postComment.mutate(text.trim())}
-                loading={postComment.isPending}
-                disabled={!text.trim()}
-              >
-                <Send size={13} />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-[var(--color-text-tertiary)] text-center">
-            <a href="/login" className="text-[var(--color-accent)] hover:underline">登录</a> 后发表评论
-          </p>
-        )}
-      </div>
-    </motion.div>
+    <div className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[var(--color-text-tertiary)]', className)}>
+      {thought.sportType && (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-1 w-1 rounded-full bg-emerald-400" />
+          <span>{sportTypeLabel[thought.sportType]}</span>
+        </span>
+      )}
+      {thought.sportDuration !== null && thought.sportDuration !== undefined && (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-1 w-1 rounded-full bg-[var(--color-border-2)]" />
+          <span>
+            <span className="font-medium text-[var(--color-cyan)]">{thought.sportDuration}</span>
+            <span className="ml-1">分钟</span>
+          </span>
+        </span>
+      )}
+      {thought.sportCalories !== null && thought.sportCalories !== undefined && (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-1 w-1 rounded-full bg-[var(--color-border-2)]" />
+          <span>
+            <span className="font-medium text-[var(--color-cyan)]">{thought.sportCalories}</span>
+            <span className="ml-1">千卡</span>
+          </span>
+        </span>
+      )}
+    </div>
   )
 }
 
-// ── Thought card ───────────────────────────────────────────────────────────
-function ThoughtCard({ thought }: { thought: Thought }) {
-  const { isLoggedIn } = useAuthStore()
+function ThoughtCard({ thought, onOpenDetail }: { thought: Thought; onOpenDetail: (thought: Thought) => void }) {
+  const { isLoggedIn, isAdmin } = useAuthStore()
   const qc = useQueryClient()
-  const [showComments, setShowComments] = useState(false)
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const typeMeta = typeByValue[thought.type]
+  const TypeIcon = typeMeta.icon
+
+  const openDetail = () => {
+    onOpenDetail(thought)
+  }
 
   const toggleLike = useMutation({
     mutationFn: () => api.post(`/thoughts/${thought.id}/like`),
-    onMutate: async () => {
-      await qc.cancelQueries({ queryKey: ['thoughts'] })
-      const prev = qc.getQueryData(['thoughts'])
-      qc.setQueryData(['thoughts'], (old: ApiResponse<PaginatedResult<Thought>>) => ({
-        ...old,
-        data: {
-          ...old.data,
-          data: old.data.data.map((t) =>
-            t.id === thought.id
-              ? { ...t, liked: !t.liked, likesCount: t.liked ? t.likesCount - 1 : t.likesCount + 1 }
-              : t
-          ),
-        },
-      }))
-      return { prev }
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['thoughts'] }),
+  })
+
+  const toggleDislike = useMutation({
+    mutationFn: () => api.post(`/thoughts/${thought.id}/dislike`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['thoughts'] }),
+  })
+
+  const deleteThought = useMutation({
+    mutationFn: () => api.delete(`/thoughts/${thought.id}`),
+    onSuccess: () => {
+      setDeleteOpen(false)
+      qc.invalidateQueries({ queryKey: ['thoughts'] })
     },
-    onError: (_err, _vars, ctx) => qc.setQueryData(['thoughts'], ctx?.prev),
   })
 
   return (
@@ -186,15 +199,39 @@ function ThoughtCard({ thought }: { thought: Thought }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card hover className="overflow-visible">
+      <Card hover className="cursor-pointer overflow-visible" onClick={openDetail}>
         <CardContent className="p-5">
           {/* Header */}
           <div className="flex items-center gap-3 mb-3">
             <Avatar src={thought.user.avatar} alt={thought.user.nickname} size="md" />
-            <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">{thought.user.nickname}</p>
-              <p className="text-xs text-[var(--color-text-tertiary)]">{formatDate(thought.createdAt, { relative: true })}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium leading-5 text-[var(--color-text-primary)]">
+                {thought.user.nickname}
+                <span className="mx-1.5 text-[var(--color-text-tertiary)]">·</span>
+                <span className="text-xs font-normal text-[var(--color-text-tertiary)]">
+                  {formatDate(thought.createdAt, { relative: true })}
+                </span>
+              </p>
             </div>
+            <span className={cn('ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]', typeMeta.tone)}>
+              <TypeIcon size={12} />
+              {typeMeta.label}
+            </span>
+            {isAdmin() && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDeleteOpen(true)
+                }}
+                disabled={deleteThought.isPending}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-danger)]/10 hover:text-[var(--color-danger)] disabled:pointer-events-none disabled:opacity-40"
+                title="删除"
+                aria-label="删除这条日常"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
 
           {/* Content */}
@@ -202,18 +239,23 @@ function ThoughtCard({ thought }: { thought: Thought }) {
             {thought.content}
           </p>
 
+          <SportMeta thought={thought} className="mt-3" />
+
           {/* Images */}
-          <ImageGrid images={thought.images} onPreview={setPreviewIndex} />
+          <ImageGrid images={thought.images} onPreview={() => openDetail()} />
 
           {/* Actions */}
-          <div className="flex items-center gap-4 mt-4">
+          <div className="mt-4 flex items-center justify-end gap-3">
             <button
-              onClick={() => isLoggedIn() && toggleLike.mutate()}
+              onClick={(e) => {
+                e.stopPropagation()
+                isLoggedIn() && toggleLike.mutate()
+              }}
               className={cn(
-                'flex items-center gap-1.5 text-xs transition-colors',
+                'flex h-7 items-center gap-1.5 rounded-full px-2 text-xs transition-colors',
                 thought.liked
-                  ? 'text-red-400'
-                  : 'text-[var(--color-text-tertiary)] hover:text-red-400',
+                  ? 'bg-red-500/10 text-red-400'
+                  : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-red-400',
                 !isLoggedIn() && 'cursor-default'
               )}
             >
@@ -221,90 +263,286 @@ function ThoughtCard({ thought }: { thought: Thought }) {
               {thought.likesCount > 0 && thought.likesCount}
             </button>
             <button
-              onClick={() => setShowComments(!showComments)}
-              className="flex items-center gap-1.5 text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
+              onClick={(e) => {
+                e.stopPropagation()
+                isLoggedIn() && toggleDislike.mutate()
+              }}
+              className={cn(
+                'flex h-7 items-center gap-1.5 rounded-full px-2 text-xs transition-colors',
+                thought.disliked
+                  ? 'bg-[var(--color-surface-2)] text-[var(--color-cyan)]'
+                  : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-cyan)]',
+                !isLoggedIn() && 'cursor-default'
+              )}
             >
-              <MessageCircle size={14} />
-              {thought.commentsCount > 0 && thought.commentsCount}
+              <ThumbsDown size={14} className={thought.disliked ? 'fill-[var(--color-cyan)]' : ''} />
+              {thought.dislikesCount > 0 ? thought.dislikesCount : '踩一下'}
             </button>
           </div>
-
-          {/* Comments */}
-          <AnimatePresence>
-            {showComments && (
-              <CommentSection
-                thoughtId={thought.id}
-                onClose={() => setShowComments(false)}
-              />
-            )}
-          </AnimatePresence>
         </CardContent>
       </Card>
 
-      {/* Image preview overlay */}
-      <AnimatePresence>
-        {previewIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
-            onClick={() => setPreviewIndex(null)}
-          >
-            <button
-              className="absolute top-4 right-4 text-white/60 hover:text-white"
-              onClick={() => setPreviewIndex(null)}
-            >
-              <X size={24} />
-            </button>
-            <img
-              src={thought.images[previewIndex]}
-              alt=""
-              className="max-h-[90vh] max-w-[90vw] object-contain rounded-[var(--radius-md)]"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Modal
+        open={deleteOpen}
+        title="删除这条日常？"
+        okText="删除"
+        cancelText="取消"
+        okButtonProps={{ danger: true }}
+        confirmLoading={deleteThought.isPending}
+        onOk={() => deleteThought.mutate()}
+        onCancel={() => setDeleteOpen(false)}
+        centered
+      >
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          删除后前台将不再显示，数据库会保留软删除记录。
+        </p>
+      </Modal>
+
     </motion.div>
   )
 }
 
+function ThoughtDetailModal({
+  initialThought,
+  open,
+  onClose,
+}: {
+  initialThought: Thought | null
+  open: boolean
+  onClose: () => void
+}) {
+  const { isLoggedIn } = useAuthStore()
+  const qc = useQueryClient()
+  const [activeImage, setActiveImage] = useState(0)
+  const thoughtId = initialThought?.id ?? null
+
+  useEffect(() => {
+    setActiveImage(0)
+  }, [thoughtId])
+
+  const { data: thought, isLoading } = useQuery({
+    queryKey: ['thoughts', thoughtId],
+    enabled: open && thoughtId !== null,
+    queryFn: () => api.get<never, ApiResponse<Thought>>(`/thoughts/${thoughtId}`),
+    select: (res) => res.data,
+    initialData: initialThought ? ({ data: initialThought } as ApiResponse<Thought>) : undefined,
+    staleTime: 10_000,
+  })
+
+  const toggleLike = useMutation({
+    mutationFn: () => api.post(`/thoughts/${thoughtId}/like`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['thoughts'] })
+      qc.invalidateQueries({ queryKey: ['thoughts', thoughtId] })
+    },
+  })
+
+  const toggleDislike = useMutation({
+    mutationFn: () => api.post(`/thoughts/${thoughtId}/dislike`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['thoughts'] })
+      qc.invalidateQueries({ queryKey: ['thoughts', thoughtId] })
+    },
+  })
+
+  const meta = thought ? typeByValue[thought.type] : null
+  const TypeIcon = meta?.icon
+  const images = thought?.images ?? []
+  const currentImage = images[Math.min(activeImage, Math.max(images.length - 1, 0))]
+
+  return (
+    <>
+      <Modal
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        centered
+        className="daily-detail-modal"
+        width={images.length > 0 ? 'min(1040px, calc(100vw - 32px))' : 'min(620px, calc(100vw - 32px))'}
+        styles={{
+          body: { padding: 0 },
+          mask: { background: 'rgba(0, 0, 0, 0.64)' },
+        }}
+        closeIcon={<span className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]">×</span>}
+      >
+        {isLoading || !thought || !meta || !TypeIcon ? (
+          <div className="grid min-h-[560px] animate-pulse bg-[var(--color-surface)] lg:grid-cols-[minmax(0,1.45fr)_390px]">
+            <div className="hidden bg-[var(--color-surface-2)] lg:block" />
+            <div className="p-5">
+              <div className="mb-6 h-10 rounded-[var(--radius-md)] bg-[var(--color-surface-2)]" />
+              <div className="space-y-3">
+                <div className="h-4 w-24 rounded bg-[var(--color-surface-2)]" />
+                <div className="h-4 rounded bg-[var(--color-surface-2)]" />
+                <div className="h-4 w-3/4 rounded bg-[var(--color-surface-2)]" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <article
+            className={cn(
+              'grid max-h-[86vh] min-h-[560px] overflow-hidden bg-[var(--color-surface)]',
+              images.length > 0 ? 'lg:grid-cols-[minmax(0,1.35fr)_390px]' : 'lg:grid-cols-1'
+            )}
+          >
+            {images.length > 0 && (
+              <section className="relative min-h-[300px] overflow-hidden bg-[var(--color-surface-2)] lg:min-h-[560px]">
+                <div className="absolute inset-0">
+                  <img
+                    src={ossImageUrl(currentImage, 1200)}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
+                </div>
+                {images.length > 1 && (
+                  <div className="absolute inset-x-0 bottom-0 flex gap-2 overflow-x-auto bg-gradient-to-t from-black/40 to-transparent p-3">
+                    {images.map((image, index) => (
+                      <button
+                        key={image}
+                        type="button"
+                        onClick={() => setActiveImage(index)}
+                        className={cn(
+                          'h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-sm)] border transition-all',
+                          activeImage === index
+                            ? 'border-white/85 opacity-100'
+                            : 'border-white/10 opacity-55 hover:opacity-90'
+                        )}
+                      >
+                        <img
+                          src={ossImageUrl(image, 180)}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          decoding="async"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            <aside className="flex min-h-[420px] flex-col overflow-hidden">
+              <header className="flex items-center gap-3 border-b border-[var(--color-border)] px-5 py-4">
+                <Avatar src={thought.user.avatar} alt={thought.user.nickname} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--color-text-primary)]">
+                    {thought.user.nickname}
+                  </p>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">
+                    {formatDate(thought.createdAt, { relative: true })}
+                  </p>
+                </div>
+              </header>
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+                <span className={cn('mb-4 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px]', meta.tone)}>
+                  <TypeIcon size={12} />
+                  {meta.label}
+                </span>
+                <p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--color-text-primary)]">
+                  {thought.content}
+                </p>
+                <SportMeta thought={thought} className="mt-4" />
+              </div>
+
+              <footer className="flex items-center justify-end gap-3 border-t border-[var(--color-border)] px-5 py-4">
+                <button
+                  type="button"
+                  onClick={() => isLoggedIn() && toggleLike.mutate()}
+                  className={cn(
+                    'flex h-9 items-center gap-1.5 rounded-full px-3 text-sm transition-colors',
+                    thought.liked
+                      ? 'bg-red-500/10 text-red-400'
+                      : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-red-400',
+                    !isLoggedIn() && 'cursor-default'
+                  )}
+                >
+                  <Heart size={16} className={thought.liked ? 'fill-red-400' : ''} />
+                  {thought.likesCount > 0 && thought.likesCount}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => isLoggedIn() && toggleDislike.mutate()}
+                  className={cn(
+                    'flex h-9 items-center gap-1.5 rounded-full px-3 text-sm transition-colors',
+                    thought.disliked
+                      ? 'bg-[var(--color-surface-2)] text-[var(--color-cyan)]'
+                      : 'text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-cyan)]',
+                    !isLoggedIn() && 'cursor-default'
+                  )}
+                >
+                  <ThumbsDown size={16} className={thought.disliked ? 'fill-[var(--color-cyan)]' : ''} />
+                  {thought.dislikesCount > 0 ? thought.dislikesCount : '踩一下'}
+                </button>
+              </footer>
+            </aside>
+          </article>
+        )}
+      </Modal>
+
+    </>
+  )
+}
+
 // ── Post form (admin only) ─────────────────────────────────────────────────
-function PostThoughtForm({ onClose }: { onClose: () => void }) {
+function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; onClose: () => void }) {
   const [text, setText] = useState('')
-  const [images, setImages] = useState<File[]>([])
+  const [type, setType] = useState<ThoughtType>(defaultType)
+  const [sportType, setSportType] = useState<SportType | ''>('')
+  const [sportDuration, setSportDuration] = useState('')
+  const [sportCalories, setSportCalories] = useState('')
+  const [images, setImages] = useState<UploadedImage[]>([])
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const qc = useQueryClient()
 
+  const uploadFile = async (file: File): Promise<UploadedImage> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const uploadRes = await api.post<never, ApiResponse<Pick<PresignResult, 'key' | 'publicUrl'>>>(
+      '/resources/upload',
+      formData
+    )
+
+    const { publicUrl } = uploadRes.data
+
+    return {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      name: file.name,
+      previewUrl: URL.createObjectURL(file),
+      publicUrl,
+    }
+  }
+
+  const handleImageChange = async (files: FileList | null) => {
+    const selected = Array.from(files ?? [])
+    if (!selected.length) return
+    setUploading(true)
+    try {
+      const uploaded = await Promise.all(selected.map(uploadFile))
+      setImages((prev) => [...prev, ...uploaded])
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSubmit = async () => {
-    if (!text.trim()) return
+    if (!text.trim() || uploading) return
     setLoading(true)
     try {
-      const imageUrls: string[] = []
-
-      for (const file of images) {
-        const presignRes = await api.post('/resources/presign', {
-          filename: file.name,
-          contentType: file.type || 'application/octet-stream',
-        })
-
-        const { uploadUrl, publicUrl } = presignRes.data as {
-          uploadUrl: string
-          key: string
-          publicUrl: string
-        }
-
-        await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type || 'application/octet-stream' },
-          body: file,
-        })
-
-        imageUrls.push(publicUrl)
-      }
-
-      await api.post('/thoughts', { content: text, images: imageUrls })
+      await api.post('/thoughts', {
+        content: text,
+        type,
+        ...(type === 'sport'
+          ? {
+              sportType: sportType || undefined,
+              sportDuration: sportDuration ? Number(sportDuration) : undefined,
+              sportCalories: sportCalories ? Number(sportCalories) : undefined,
+            }
+          : {}),
+        images: images.map((image) => image.publicUrl),
+      })
       qc.invalidateQueries({ queryKey: ['thoughts'] })
       onClose()
     } finally {
@@ -321,39 +559,97 @@ function PostThoughtForm({ onClose }: { onClose: () => void }) {
     >
       <Card className="mb-6 border-[var(--color-accent)]/30">
         <CardContent className="p-5 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {thoughtTypes.map(({ value, label, icon: Icon, tone }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setType(value)}
+                className={cn(
+                  'flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border px-3 py-2 text-xs transition-all',
+                  type === value
+                    ? tone
+                    : 'border-[var(--color-border)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-2)]'
+                )}
+              >
+                <Icon size={13} />
+                {label}
+              </button>
+            ))}
+          </div>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="分享你的想法..."
+            placeholder={`记录${typeByValue[type].label}...`}
             className="min-h-[100px]"
             autoFocus
           />
+          {type === 'sport' && (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="space-y-1.5">
+                <span className="block text-sm font-medium text-[var(--color-text-secondary)]">运动类型</span>
+                <select
+                  value={sportType}
+                  onChange={(e) => setSportType(e.target.value as SportType | '')}
+                  className="h-10 w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-2)] px-3 text-sm text-[var(--color-text-primary)] outline-none transition-all focus:border-[var(--color-accent)] focus:shadow-[0_0_0_3px_var(--color-accent-glow)]"
+                >
+                  <option value="">未选择</option>
+                  {sportTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+              <Input
+                label="运动时长"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="分钟"
+                value={sportDuration}
+                onChange={(e) => setSportDuration(e.target.value)}
+              />
+              <Input
+                label="消耗"
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="千卡"
+                value={sportCalories}
+                onChange={(e) => setSportCalories(e.target.value)}
+              />
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-tertiary)] cursor-pointer hover:text-[var(--color-text-primary)] transition-colors">
               <Image size={14} />
-              添加图片 {images.length > 0 && `(${images.length})`}
+              {uploading ? '上传中...' : `添加图片${images.length > 0 ? ` (${images.length})` : ''}`}
               <input
                 type="file"
                 multiple
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => setImages(Array.from(e.target.files ?? []))}
+                disabled={uploading || loading}
+                onChange={(e) => {
+                  void handleImageChange(e.target.files)
+                  e.currentTarget.value = ''
+                }}
               />
             </label>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={onClose}>取消</Button>
-              <Button size="sm" onClick={handleSubmit} loading={loading} disabled={!text.trim()}>
+              <Button size="sm" onClick={handleSubmit} loading={loading} disabled={!text.trim() || uploading}>
                 发布
               </Button>
             </div>
           </div>
           {images.length > 0 && (
             <div className="flex gap-2 flex-wrap">
-              {images.map((f, i) => (
-                <div key={i} className="relative w-16 h-16 rounded-[var(--radius-sm)] overflow-hidden">
-                  <img src={URL.createObjectURL(f)} alt="" className="w-full h-full object-cover" />
+              {images.map((image) => (
+                <div key={image.id} className="relative w-16 h-16 rounded-[var(--radius-sm)] overflow-hidden">
+                  <img src={image.previewUrl} alt={image.name} className="w-full h-full object-cover" />
                   <button
-                    onClick={() => setImages(images.filter((_, j) => j !== i))}
+                    type="button"
+                    onClick={() => setImages(images.filter((item) => item.id !== image.id))}
                     className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5"
                   >
                     <X size={10} className="text-white" />
@@ -372,26 +668,97 @@ function PostThoughtForm({ onClose }: { onClose: () => void }) {
 export function ThoughtsPage() {
   const { isAdmin } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
-  const { data: thoughts = [], isLoading } = useThoughts()
+  const [selectedType, setSelectedType] = useState<ThoughtType | undefined>()
+  const [layout, setLayout] = useState<FeedLayout>('list')
+  const [selectedThought, setSelectedThought] = useState<Thought | null>(null)
+  const { data: thoughts = [], isLoading } = useThoughts(selectedType)
+  const defaultPostType = selectedType ?? 'daily'
 
   return (
     <PageLayout>
-      <PageContainer className="max-w-2xl">
+      <PageContainer className={layout === 'masonry' ? 'max-w-5xl' : 'max-w-2xl'}>
         <SectionHeader
-          title="想法"
-          subtitle="生活碎片与瞬间灵感"
+          title="日常"
+          subtitle="日常、运动、饮食、投资、文献、想法"
           action={
-            isAdmin() && (
-              <Button size="sm" onClick={() => setShowForm(!showForm)}>
-                <Plus size={14} />
-                发布
-              </Button>
-            )
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-1">
+                <Button
+                  variant={layout === 'list' ? 'default' : 'ghost'}
+                  size="icon-sm"
+                  onClick={() => setLayout('list')}
+                  title="列表"
+                  aria-label="列表"
+                >
+                  <LayoutList size={14} />
+                </Button>
+                <Button
+                  variant={layout === 'masonry' ? 'default' : 'ghost'}
+                  size="icon-sm"
+                  onClick={() => setLayout('masonry')}
+                  title="瀑布流"
+                  aria-label="瀑布流"
+                >
+                  <Columns3 size={14} />
+                </Button>
+              </div>
+              {isAdmin() && (
+                <Button size="sm" onClick={() => setShowForm(!showForm)}>
+                  <Plus size={14} />
+                  发布
+                </Button>
+              )}
+            </div>
           }
         />
 
         <AnimatePresence>
-          {showForm && <PostThoughtForm onClose={() => setShowForm(false)} />}
+          {!showForm && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="mb-6 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2"
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedType(undefined)}
+                className={cn(
+                  'rounded-[var(--radius-md)] border px-3 py-2 text-left transition-all',
+                  selectedType === undefined
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-glow)] text-[var(--color-accent)]'
+                    : 'border-[var(--color-border)] text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]'
+                )}
+              >
+                <span className="block text-xs font-medium">全部</span>
+                <span className="block text-[10px] mt-0.5 opacity-70">时间流</span>
+              </button>
+              {thoughtTypes.map(({ value, label, description, icon: Icon, tone }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setSelectedType(value)}
+              className={cn(
+                'rounded-[var(--radius-md)] border px-3 py-2 text-left transition-all',
+                selectedType === value
+                  ? tone
+                  : 'border-[var(--color-border)] text-[var(--color-text-tertiary)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text-primary)]'
+              )}
+            >
+              <span className="flex items-center gap-1.5 text-xs font-medium">
+                <Icon size={13} />
+                {label}
+              </span>
+              <span className="block text-[10px] mt-0.5 opacity-70">{description}</span>
+            </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showForm && <PostThoughtForm defaultType={defaultPostType} onClose={() => setShowForm(false)} />}
         </AnimatePresence>
 
         {isLoading ? (
@@ -402,17 +769,31 @@ export function ThoughtsPage() {
           </div>
         ) : thoughts.length === 0 ? (
           <div className="text-center py-20 text-[var(--color-text-tertiary)]">
-            <Lightbulb size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">还没有想法，快来分享第一条吧</p>
+            <CalendarDays size={40} className="mx-auto mb-3 opacity-30" />
+            <p className="text-sm">
+              {selectedType ? `还没有${typeByValue[selectedType].label}内容` : '还没有日常内容'}
+            </p>
           </div>
         ) : (
-          <motion.div layout className="space-y-4">
-            {thoughts.map((t) => (
-              <ThoughtCard key={t.id} thought={t} />
+          <motion.div
+            layout
+            className={layout === 'masonry' ? 'columns-1 gap-4 sm:columns-2 lg:columns-3' : 'space-y-4'}
+          >
+            {thoughts.map((t) => layout === 'masonry' ? (
+              <div key={t.id} className="mb-4 break-inside-avoid">
+                <ThoughtCard thought={t} onOpenDetail={setSelectedThought} />
+              </div>
+            ) : (
+              <ThoughtCard key={t.id} thought={t} onOpenDetail={setSelectedThought} />
             ))}
           </motion.div>
         )}
       </PageContainer>
+      <ThoughtDetailModal
+        initialThought={selectedThought}
+        open={selectedThought !== null}
+        onClose={() => setSelectedThought(null)}
+      />
     </PageLayout>
   )
 }

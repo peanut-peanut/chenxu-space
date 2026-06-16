@@ -23,6 +23,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         typeof res === 'string' ? res : (res as { message: string }).message;
     }
 
-    response.status(status).json({ code: status, message, data: null });
+    response.status(HttpStatus.OK).json({ code: status, message, data: null });
   }
 }

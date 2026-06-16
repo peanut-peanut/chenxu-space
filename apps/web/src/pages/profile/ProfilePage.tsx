@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Upload as AntUpload } from 'antd'
+import type { UploadFile } from 'antd'
 import { useAuthStore } from '@/store/auth'
 import { api } from '@/lib/api'
 import { PageLayout, PageContainer } from '@/components/layout/PageLayout'
@@ -7,15 +9,46 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
-import { User, Save, Camera } from 'lucide-react'
-import type { ApiResponse } from '@chenxu/types'
+import { User, Save, Camera, LogOut, UploadCloud } from 'lucide-react'
+import type { ApiResponse, PresignResult } from '@chenxu/types'
+
+const { Dragger } = AntUpload
 
 export function ProfilePage() {
-  const { user, setUser } = useAuthStore()
+  const { user, setUser, logout } = useAuthStore()
   const [nickname, setNickname] = useState(user?.nickname ?? '')
   const [avatar, setAvatar] = useState(user?.avatar ?? '')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const avatarFileList: UploadFile[] = avatarFile
+    ? [{ uid: avatarFile.name, name: avatarFile.name, size: avatarFile.size, status: 'done' }]
+    : []
+
+  async function uploadAvatar(file: File) {
+    setUploadingAvatar(true)
+    setSuccess(false)
+    try {
+      const res = await api.post<never, ApiResponse<PresignResult>>('/resources/avatar/presign', {
+        filename: file.name,
+        contentType: file.type,
+      })
+      const { uploadUrl, publicUrl } = res.data
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+          'x-oss-object-acl': 'public-read',
+        },
+      })
+      setAvatar(publicUrl)
+      setAvatarFile(file)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -61,15 +94,33 @@ export function ProfilePage() {
                 <Camera size={18} className="text-white" />
               </div>
             </div>
-            <p className="text-xs text-[var(--color-text-muted)]">通过填写 OSS 头像链接来更新</p>
+            <p className="text-xs text-[var(--color-text-muted)]">上传图片后保存即可更新头像</p>
           </motion.div>
 
-          <Input
-            label="头像链接"
-            placeholder="https://..."
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-          />
+          <div className="space-y-1.5">
+            <span className="block text-sm font-medium text-[var(--color-text-secondary)]">头像图片</span>
+            <Dragger
+              accept="image/*"
+              maxCount={1}
+              fileList={avatarFileList}
+              showUploadList={!!avatarFile}
+              beforeUpload={(file) => {
+                void uploadAvatar(file as File)
+                return false
+              }}
+              onRemove={() => {
+                setAvatarFile(null)
+                return true
+              }}
+              disabled={uploadingAvatar || saving}
+            >
+              <p className="ant-upload-drag-icon">
+                <UploadCloud size={28} className="mx-auto text-[var(--color-text-tertiary)]" />
+              </p>
+              <p className="ant-upload-text">{uploadingAvatar ? '上传中...' : '点击或拖拽图片上传'}</p>
+              <p className="ant-upload-hint">支持 jpg、png、webp 等图片格式</p>
+            </Dragger>
+          </div>
 
           <Input
             label="昵称"
@@ -83,7 +134,7 @@ export function ProfilePage() {
             <Button
               onClick={handleSave}
               loading={saving}
-              disabled={!nickname.trim()}
+              disabled={!nickname.trim() || uploadingAvatar}
               className="flex-1"
             >
               <Save size={15} />
@@ -115,6 +166,17 @@ export function ProfilePage() {
               </span>
             </div>
           </div>
+        </Card>
+
+        <Card className="p-6 mt-4">
+          <Button
+            variant="danger"
+            className="w-full"
+            onClick={() => { void logout() }}
+          >
+            <LogOut size={15} />
+            退出登录
+          </Button>
         </Card>
       </div>
       </PageContainer>

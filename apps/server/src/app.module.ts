@@ -9,6 +9,7 @@ import { ThoughtsModule } from './thoughts/thoughts.module';
 import { ArticlesModule } from './articles/articles.module';
 import { ResourcesModule } from './resources/resources.module';
 import { FoldersModule } from './folders/folders.module';
+import { CatsModule } from './cats/cats.module';
 import { HealthModule } from './health/health.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -25,6 +26,7 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
     ArticlesModule,
     ResourcesModule,
     FoldersModule,
+    CatsModule,
     HealthModule,
   ],
   providers: [
