@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   CreateThoughtDto,
+  UpdateThoughtDto,
   CreateCommentDto,
   PaginationDto,
 } from './thoughts.dto';
@@ -100,6 +101,28 @@ export class ThoughtsService {
         sportDuration: dto.type === 'sport' ? dto.sportDuration : null,
         sportCalories: dto.type === 'sport' ? dto.sportCalories : null,
         userId,
+      },
+    });
+  }
+
+  async update(thoughtId: number, dto: UpdateThoughtDto, imageUrls: string[]) {
+    const thought = await this.prisma.thought.findFirst({
+      where: { id: thoughtId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!thought) throw new NotFoundException('内容不存在');
+
+    const type = dto.type ?? 'daily';
+    const isSport = type === 'sport';
+    return this.prisma.thought.update({
+      where: { id: thoughtId },
+      data: {
+        content: dto.content,
+        images: imageUrls,
+        type,
+        sportType: isSport ? (dto.sportType ?? null) : null,
+        sportDuration: isSport ? (dto.sportDuration ?? null) : null,
+        sportCalories: isSport ? (dto.sportCalories ?? null) : null,
       },
     });
   }

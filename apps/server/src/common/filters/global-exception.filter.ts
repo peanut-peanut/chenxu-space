@@ -5,12 +5,16 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import { AlertService } from '../alerts/alert.service';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  constructor(private readonly alerts: AlertService) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
+    const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -22,6 +26,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message =
         typeof res === 'string' ? res : (res as { message: string }).message;
     }
+
+    this.alerts.notifyServerError({ status, message, exception, request });
 
     response.status(HttpStatus.OK).json({ code: status, message, data: null });
   }

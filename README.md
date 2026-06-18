@@ -165,6 +165,10 @@ OSS_BUCKET=my-pan-disk
 OSS_REGION=oss-cn-beijing
 OSS_ENDPOINT=oss-cn-beijing.aliyuncs.com
 
+FEISHU_ALERT_WEBHOOK=
+FEISHU_ALERT_SECRET=
+FEISHU_ALERT_INTERVAL_MS=60000
+
 ADMIN_PHONE=12200001116
 ADMIN_PASSWORD=<管理员密码>
 ADMIN_NICKNAME=chenxu
@@ -301,6 +305,9 @@ docker compose exec nginx nginx -s reload
 | `OSS_BUCKET` | OSS Bucket 名称 |
 | `OSS_REGION` | OSS 地域（如 `oss-cn-beijing`） |
 | `OSS_ENDPOINT` | OSS Endpoint（如 `oss-cn-beijing.aliyuncs.com`） |
+| `FEISHU_ALERT_WEBHOOK` | 飞书机器人 webhook，配置后生产环境 500 级错误会发送告警 |
+| `FEISHU_ALERT_SECRET` | 飞书机器人签名密钥，未开启签名时留空 |
+| `FEISHU_ALERT_INTERVAL_MS` | 相同异常告警限流间隔，默认 60000 |
 | `ADMIN_PHONE` | seed 管理员手机号 |
 | `ADMIN_PASSWORD` | seed 管理员密码 |
 | `ADMIN_NICKNAME` | seed 管理员昵称 |

@@ -231,3 +231,58 @@ body {
 .daily-detail-modal .ant-modal-close::after {
   display: none;
 }
+
+/* Rich text (TipTap) editor + render */
+.tiptap-content {
+  line-height: 1.75;
+  word-break: break-word;
+}
+.tiptap-content p {
+  margin: 0 0 0.5em;
+}
+.tiptap-content p:last-child {
+  margin-bottom: 0;
+}
+.tiptap-content strong {
+  font-weight: 700;
+  color: inherit;
+}
+.tiptap-content em {
+  font-style: italic;
+}
+.tiptap-content u {
+  text-decoration: underline;
+}
+.tiptap-content s {
+  text-decoration: line-through;
+}
+.tiptap-content ul,
+.tiptap-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+.tiptap-content ul {
+  list-style: disc;
+}
+.tiptap-content ol {
+  list-style: decimal;
+}
+.tiptap-content li {
+  margin: 0.15em 0;
+}
+.tiptap-content blockquote {
+  margin: 0.5em 0;
+  padding-left: 0.85em;
+  border-left: 3px solid var(--color-border-2);
+  color: var(--color-text-tertiary);
+}
+.tiptap-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}
+.tiptap-content:focus {
+  outline: none;
+}

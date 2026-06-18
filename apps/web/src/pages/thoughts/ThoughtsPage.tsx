@@ -14,6 +14,7 @@ import {
   FileText,
   Lightbulb,
   Trash2,
+  Pencil,
   ThumbsDown,
   LayoutList,
   Columns3,
@@ -23,7 +24,9 @@ import { PageLayout, PageContainer, SectionHeader } from '@/components/layout/Pa
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Input, Textarea } from '@/components/ui/input'
+import { Input } from '@/components/ui/input'
+import { RichTextEditor } from '@/components/ui/RichTextEditor'
+import { RichText } from '@/components/ui/RichText'
 import { useAuthStore } from '@/store/auth'
 import { api } from '@/lib/api'
 import { formatDate, cn } from '@/lib/utils'
@@ -163,7 +166,7 @@ function SportMeta({ thought, className }: { thought: Thought; className?: strin
   )
 }
 
-function ThoughtCard({ thought, onOpenDetail }: { thought: Thought; onOpenDetail: (thought: Thought) => void }) {
+function ThoughtCard({ thought, onOpenDetail, onEdit }: { thought: Thought; onOpenDetail: (thought: Thought) => void; onEdit: (thought: Thought) => void }) {
   const { isLoggedIn, isAdmin } = useAuthStore()
   const qc = useQueryClient()
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -222,6 +225,20 @@ function ThoughtCard({ thought, onOpenDetail }: { thought: Thought; onOpenDetail
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
+                  onEdit(thought)
+                }}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-tertiary)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]"
+                title="编辑"
+                aria-label="编辑这条日常"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            {isAdmin() && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
                   setDeleteOpen(true)
                 }}
                 disabled={deleteThought.isPending}
@@ -235,9 +252,10 @@ function ThoughtCard({ thought, onOpenDetail }: { thought: Thought; onOpenDetail
           </div>
 
           {/* Content */}
-          <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed whitespace-pre-wrap">
-            {thought.content}
-          </p>
+          <RichText
+            content={thought.content}
+            className="text-sm text-[var(--color-text-secondary)] leading-relaxed"
+          />
 
           <SportMeta thought={thought} className="mt-3" />
 
@@ -440,9 +458,10 @@ function ThoughtDetailModal({
                   <TypeIcon size={12} />
                   {meta.label}
                 </span>
-                <p className="whitespace-pre-wrap text-[15px] leading-7 text-[var(--color-text-primary)]">
-                  {thought.content}
-                </p>
+                <RichText
+                  content={thought.content}
+                  className="text-[15px] leading-7 text-[var(--color-text-primary)]"
+                />
                 <SportMeta thought={thought} className="mt-4" />
               </div>
 
@@ -486,16 +505,36 @@ function ThoughtDetailModal({
 }
 
 // ── Post form (admin only) ─────────────────────────────────────────────────
-function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; onClose: () => void }) {
-  const [text, setText] = useState('')
-  const [type, setType] = useState<ThoughtType>(defaultType)
-  const [sportType, setSportType] = useState<SportType | ''>('')
-  const [sportDuration, setSportDuration] = useState('')
-  const [sportCalories, setSportCalories] = useState('')
-  const [images, setImages] = useState<UploadedImage[]>([])
+function PostThoughtForm({
+  defaultType,
+  editing,
+  onClose,
+}: {
+  defaultType: ThoughtType
+  editing?: Thought | null
+  onClose: () => void
+}) {
+  const [text, setText] = useState(editing?.content ?? '')
+  const [type, setType] = useState<ThoughtType>(editing?.type ?? defaultType)
+  const [sportType, setSportType] = useState<SportType | ''>(editing?.sportType ?? '')
+  const [sportDuration, setSportDuration] = useState(
+    editing?.sportDuration != null ? String(editing.sportDuration) : ''
+  )
+  const [sportCalories, setSportCalories] = useState(
+    editing?.sportCalories != null ? String(editing.sportCalories) : ''
+  )
+  const [images, setImages] = useState<UploadedImage[]>(
+    (editing?.images ?? []).map((url, index) => ({
+      id: `existing-${index}-${url}`,
+      name: '',
+      previewUrl: url,
+      publicUrl: url,
+    }))
+  )
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const qc = useQueryClient()
+  const isEditing = !!editing
 
   const uploadFile = async (file: File): Promise<UploadedImage> => {
     const formData = new FormData()
@@ -531,7 +570,7 @@ function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; o
     if (!text.trim() || uploading) return
     setLoading(true)
     try {
-      await api.post('/thoughts', {
+      const payload = {
         content: text,
         type,
         ...(type === 'sport'
@@ -542,7 +581,13 @@ function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; o
             }
           : {}),
         images: images.map((image) => image.publicUrl),
-      })
+      }
+      if (isEditing && editing) {
+        await api.patch(`/thoughts/${editing.id}`, payload)
+        qc.invalidateQueries({ queryKey: ['thoughts', editing.id] })
+      } else {
+        await api.post('/thoughts', payload)
+      }
       qc.invalidateQueries({ queryKey: ['thoughts'] })
       onClose()
     } finally {
@@ -577,12 +622,11 @@ function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; o
               </button>
             ))}
           </div>
-          <Textarea
+          <RichTextEditor
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={setText}
             placeholder={`记录${typeByValue[type].label}...`}
             className="min-h-[100px]"
-            autoFocus
           />
           {type === 'sport' && (
             <div className="grid gap-3 sm:grid-cols-3">
@@ -638,7 +682,7 @@ function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; o
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={onClose}>取消</Button>
               <Button size="sm" onClick={handleSubmit} loading={loading} disabled={!text.trim() || uploading}>
-                发布
+                {isEditing ? '保存' : '发布'}
               </Button>
             </div>
           </div>
@@ -668,11 +712,28 @@ function PostThoughtForm({ defaultType, onClose }: { defaultType: ThoughtType; o
 export function ThoughtsPage() {
   const { isAdmin } = useAuthStore()
   const [showForm, setShowForm] = useState(false)
+  const [editingThought, setEditingThought] = useState<Thought | null>(null)
   const [selectedType, setSelectedType] = useState<ThoughtType | undefined>()
   const [layout, setLayout] = useState<FeedLayout>('list')
   const [selectedThought, setSelectedThought] = useState<Thought | null>(null)
   const { data: thoughts = [], isLoading } = useThoughts(selectedType)
   const defaultPostType = selectedType ?? 'daily'
+
+  const openCreateForm = () => {
+    setEditingThought(null)
+    setShowForm((prev) => !prev || editingThought !== null)
+  }
+
+  const openEditForm = (thought: Thought) => {
+    setEditingThought(thought)
+    setShowForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const closeForm = () => {
+    setShowForm(false)
+    setEditingThought(null)
+  }
 
   return (
     <PageLayout>
@@ -703,7 +764,7 @@ export function ThoughtsPage() {
                 </Button>
               </div>
               {isAdmin() && (
-                <Button size="sm" onClick={() => setShowForm(!showForm)}>
+                <Button size="sm" onClick={openCreateForm}>
                   <Plus size={14} />
                   发布
                 </Button>
@@ -758,7 +819,14 @@ export function ThoughtsPage() {
         </AnimatePresence>
 
         <AnimatePresence>
-          {showForm && <PostThoughtForm defaultType={defaultPostType} onClose={() => setShowForm(false)} />}
+          {showForm && (
+            <PostThoughtForm
+              key={editingThought?.id ?? 'new'}
+              defaultType={editingThought?.type ?? defaultPostType}
+              editing={editingThought}
+              onClose={closeForm}
+            />
+          )}
         </AnimatePresence>
 
         {isLoading ? (
@@ -781,10 +849,10 @@ export function ThoughtsPage() {
           >
             {thoughts.map((t) => layout === 'masonry' ? (
               <div key={t.id} className="mb-4 break-inside-avoid">
-                <ThoughtCard thought={t} onOpenDetail={setSelectedThought} />
+                <ThoughtCard thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
               </div>
             ) : (
-              <ThoughtCard key={t.id} thought={t} onOpenDetail={setSelectedThought} />
+              <ThoughtCard key={t.id} thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
             ))}
           </motion.div>
         )}

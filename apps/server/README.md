@@ -63,6 +63,10 @@ OSS_BUCKET=my-pan-disk
 OSS_REGION=oss-cn-beijing
 OSS_ENDPOINT=oss-cn-beijing.aliyuncs.com
 
+FEISHU_ALERT_WEBHOOK=
+FEISHU_ALERT_SECRET=
+FEISHU_ALERT_INTERVAL_MS=60000
+
 ADMIN_PHONE=12200001116
 ADMIN_PASSWORD=<管理员密码>
 ADMIN_NICKNAME=chenxu
@@ -210,6 +214,20 @@ pnpm --filter server run build
 - access token 有效期 15 分钟，refresh token 有效期 7 天
 - access token 和 refresh token 通过 HttpOnly Cookie 下发
 - 业务异常统一返回 HTTP 200，并通过响应体 `code` 表示错误码；未被业务包装的异常仍可能返回对应 HTTP 状态码
+
+## 飞书告警
+
+生产环境配置 `FEISHU_ALERT_WEBHOOK` 后，全局异常过滤器会在接口出现 500 级错误时发送飞书机器人提醒。提醒内容包含环境、状态码、接口、用户、错误信息和截断后的堆栈。
+
+可选配置：
+
+| 变量 | 说明 |
+|------|------|
+| `FEISHU_ALERT_WEBHOOK` | 飞书机器人 webhook |
+| `FEISHU_ALERT_SECRET` | 飞书机器人签名密钥，未开启签名时留空 |
+| `FEISHU_ALERT_INTERVAL_MS` | 相同异常的限流间隔，默认 60000 毫秒 |
+
+告警只在 `NODE_ENV=production` 下生效，并且只处理 `code >= 500` 的服务端错误。参数错误、登录失败等 4xx 业务异常不会发送告警。
 
 ## 数据库迁移（生产环境）
 
