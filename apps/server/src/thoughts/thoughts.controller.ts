@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -11,6 +12,7 @@ import {
 import { ThoughtsService } from './thoughts.service';
 import {
   CreateThoughtDto,
+  UpdateThoughtDto,
   CreateCommentDto,
   PaginationDto,
 } from './thoughts.dto';
@@ -47,6 +49,15 @@ export class ThoughtsController {
   @Post()
   create(@Body() dto: CreateThoughtDto, @CurrentUser() user: JwtUser) {
     return this.thoughts.create(user.id, dto, dto.images ?? []);
+  }
+
+  @AdminOnly()
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateThoughtDto,
+  ) {
+    return this.thoughts.update(id, dto, dto.images ?? []);
   }
 
   @Post(':id/like')
