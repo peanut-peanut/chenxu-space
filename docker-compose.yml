@@ -52,7 +52,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/web/Dockerfile.prebuilt
     container_name: chenxu-space-web
     restart: unless-stopped
     networks:

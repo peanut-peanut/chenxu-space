@@ -34,6 +34,21 @@ require_command ssh
 require_command scp
 require_command curl
 
+# web 前端在本地构建，避免在低内存服务器上跑 Vite 导致 OOM
+if [ "$TARGET" = "all" ] || [ "$TARGET" = "web" ]; then
+  require_command pnpm
+  echo "Building web locally (types + web)..."
+  (
+    cd "$ROOT_DIR"
+    pnpm --filter @chenxu/types run build
+    pnpm --filter web run build
+  )
+  if [ ! -f "$ROOT_DIR/apps/web/dist/index.html" ]; then
+    echo "Web build failed: apps/web/dist/index.html not found." >&2
+    exit 1
+  fi
+fi
+
 echo "Deploy target: $TARGET"
 echo "Remote: $DEPLOY_USER@$DEPLOY_HOST:$APP_DIR"
 
@@ -44,7 +59,8 @@ echo "Packing release..."
     --exclude=.git \
     --exclude=node_modules \
     --exclude='**/node_modules' \
-    --exclude='**/dist' \
+    --exclude=apps/server/dist \
+    --exclude=packages/types/dist \
     --exclude=.env \
     --exclude=apps/server/.env \
     --exclude=.DS_Store \
