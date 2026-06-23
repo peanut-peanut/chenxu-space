@@ -45,7 +45,6 @@ export class CatsService {
       accessKeyId: this.config.get('OSS_ACCESS_KEY_ID') ?? '',
       accessKeySecret: this.config.get('OSS_ACCESS_KEY_SECRET') ?? '',
       bucket: this.config.get('OSS_BUCKET'),
-      internal: this.config.get('NODE_ENV') === 'production',
     });
   }
 
