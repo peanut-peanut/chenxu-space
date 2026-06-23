@@ -23,6 +23,7 @@ export class ResourcesService {
       accessKeyId: this.config.get('OSS_ACCESS_KEY_ID') ?? '',
       accessKeySecret: this.config.get('OSS_ACCESS_KEY_SECRET') ?? '',
       bucket: this.config.get('OSS_BUCKET'),
+      secure: true,
     });
   }
 
