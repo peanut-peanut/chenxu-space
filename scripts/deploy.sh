@@ -111,24 +111,27 @@ else
   COMPOSE="docker-compose"
 fi
 
+# 旧服务器是 docker-compose v1，recreate 已有容器时会触发
+# KeyError: 'ContainerConfig'（与新版 Docker 镜像格式不兼容）。
+# 因此先 build，再 down（保留 named volume），最后 up -d 全新创建，绕开 recreate 路径。
 case "$DEPLOY_TARGET" in
   web)
-    $COMPOSE up -d --build web
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build web
     ;;
   server)
-    $COMPOSE up -d --build server
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build server
     ;;
   all)
-    $COMPOSE up -d --build
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build
     ;;
   *)
     echo "Unsupported DEPLOY_TARGET=$DEPLOY_TARGET" >&2
     exit 1
     ;;
 esac
+
+$COMPOSE down
+$COMPOSE up -d
 
 $COMPOSE ps
 rm -f "$RELEASE_ARCHIVE"
