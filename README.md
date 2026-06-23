@@ -203,7 +203,7 @@ docker compose up -d --build
 
 启动顺序：MySQL → Server（自动 migrate）→ Web → Nginx
 
-低内存服务器不要在远端执行前端 Vite 构建。当前服务器约 1.6 GB 内存，建议先在本地执行 `pnpm --filter web build`，再将 `apps/web/dist` 打进轻量 nginx 镜像，或使用 `scripts/deploy.sh` 的发布流程。
+低内存服务器不要在远端执行前端 Vite 构建。当前服务器约 1.6 GB 内存，远端跑 Vite 会 OOM。前端已改为**本地构建**：`scripts/deploy.sh` 会在本地执行 `pnpm --filter web build`，把 `apps/web/dist` 一起打包上传，服务器端用 `apps/web/Dockerfile.prebuilt`（仅 nginx，copy dist）发布，不再在服务器跑 Vite。手动部署时也应先本地 `pnpm --filter web build` 再 `docker compose up -d --build web`。
 
 ### 5. 创建管理员账号
 

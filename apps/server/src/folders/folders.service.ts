@@ -15,6 +15,7 @@ import type {
 @Injectable()
 export class FoldersService {
   private oss: OSS;
+  private envPrefix: string;
 
   constructor(
     private prisma: PrismaService,
@@ -25,8 +26,9 @@ export class FoldersService {
       accessKeyId: this.config.get('OSS_ACCESS_KEY_ID') ?? '',
       accessKeySecret: this.config.get('OSS_ACCESS_KEY_SECRET') ?? '',
       bucket: this.config.get('OSS_BUCKET'),
-      internal: this.config.get('NODE_ENV') === 'production',
+      secure: true,
     });
+    this.envPrefix = this.config.get('NODE_ENV') === 'production' ? 'prod' : 'dev';
   }
 
   getPublicFiles(type?: string) {
@@ -122,7 +124,7 @@ export class FoldersService {
 
   generatePresignUrl(filename: string, contentType: string) {
     const ext = filename.split('.').pop() ?? '';
-    const key = `folders/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/folders/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const url = this.oss.signatureUrl(key, {
       method: 'PUT',
       expires: 300,

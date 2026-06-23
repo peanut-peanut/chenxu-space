@@ -34,6 +34,21 @@ require_command ssh
 require_command scp
 require_command curl
 
+# web 前端在本地构建，避免在低内存服务器上跑 Vite 导致 OOM
+if [ "$TARGET" = "all" ] || [ "$TARGET" = "web" ]; then
+  require_command pnpm
+  echo "Building web locally (types + web)..."
+  (
+    cd "$ROOT_DIR"
+    pnpm --filter @chenxu/types run build
+    pnpm --filter web run build
+  )
+  if [ ! -f "$ROOT_DIR/apps/web/dist/index.html" ]; then
+    echo "Web build failed: apps/web/dist/index.html not found." >&2
+    exit 1
+  fi
+fi
+
 echo "Deploy target: $TARGET"
 echo "Remote: $DEPLOY_USER@$DEPLOY_HOST:$APP_DIR"
 
@@ -44,7 +59,8 @@ echo "Packing release..."
     --exclude=.git \
     --exclude=node_modules \
     --exclude='**/node_modules' \
-    --exclude='**/dist' \
+    --exclude=apps/server/dist \
+    --exclude=packages/types/dist \
     --exclude=.env \
     --exclude=apps/server/.env \
     --exclude=.DS_Store \
@@ -95,24 +111,27 @@ else
   COMPOSE="docker-compose"
 fi
 
+# 旧服务器是 docker-compose v1，recreate 已有容器时会触发
+# KeyError: 'ContainerConfig'（与新版 Docker 镜像格式不兼容）。
+# 因此先 build，再 down（保留 named volume），最后 up -d 全新创建，绕开 recreate 路径。
 case "$DEPLOY_TARGET" in
   web)
-    $COMPOSE up -d --build web
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build web
     ;;
   server)
-    $COMPOSE up -d --build server
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build server
     ;;
   all)
-    $COMPOSE up -d --build
-    $COMPOSE up -d --force-recreate nginx
+    $COMPOSE build
     ;;
   *)
     echo "Unsupported DEPLOY_TARGET=$DEPLOY_TARGET" >&2
     exit 1
     ;;
 esac
+
+$COMPOSE down
+$COMPOSE up -d
 
 $COMPOSE ps
 rm -f "$RELEASE_ARCHIVE"
