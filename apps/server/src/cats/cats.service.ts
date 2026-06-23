@@ -35,6 +35,7 @@ const cats = [
 @Injectable()
 export class CatsService {
   private oss: OSS;
+  private envPrefix: string;
 
   constructor(
     private prisma: PrismaService,
@@ -47,6 +48,7 @@ export class CatsService {
       bucket: this.config.get('OSS_BUCKET'),
       secure: true,
     });
+    this.envPrefix = this.config.get('NODE_ENV') === 'production' ? 'prod' : 'dev';
   }
 
   getCats() {
@@ -65,7 +67,7 @@ export class CatsService {
     }
 
     const ext = file.originalname.split('.').pop() ?? (isVideo ? 'mp4' : 'jpg');
-    const key = `cats/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/cats/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     await this.oss.put(key, file.buffer, {
       headers: {
@@ -93,7 +95,7 @@ export class CatsService {
     }
 
     const ext = filename.split('.').pop() ?? (isVideo ? 'mp4' : 'jpg');
-    const key = `cats/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/cats/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const uploadUrl = this.oss.signatureUrl(key, {
       method: 'PUT',
       expires: 300,

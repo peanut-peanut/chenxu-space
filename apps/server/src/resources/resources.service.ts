@@ -13,6 +13,7 @@ export interface UploadedResourceFile {
 @Injectable()
 export class ResourcesService {
   private oss: OSS;
+  private envPrefix: string;
 
   constructor(
     private prisma: PrismaService,
@@ -25,11 +26,12 @@ export class ResourcesService {
       bucket: this.config.get('OSS_BUCKET'),
       secure: true,
     });
+    this.envPrefix = this.config.get('NODE_ENV') === 'production' ? 'prod' : 'dev';
   }
 
   generatePresignUrl(filename: string, contentType: string) {
     const ext = filename.split('.').pop() ?? '';
-    const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     const url = this.oss.signatureUrl(key, {
       method: 'PUT',
@@ -52,7 +54,7 @@ export class ResourcesService {
     }
 
     const ext = file.originalname.split('.').pop() ?? 'jpg';
-    const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
     await this.oss.put(key, file.buffer, {
       headers: {
@@ -72,7 +74,7 @@ export class ResourcesService {
     }
 
     const ext = filename.split('.').pop() ?? 'jpg';
-    const key = `avatars/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const key = `${this.envPrefix}/avatars/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const uploadUrl = this.oss.signatureUrl(key, {
       method: 'PUT',
       expires: 300,
