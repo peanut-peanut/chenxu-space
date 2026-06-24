@@ -9,6 +9,11 @@ import type {
 } from './thoughts.dto';
 
 const userSelect = { id: true, nickname: true, avatar: true };
+const sportTypeLabels = {
+  basketball: '篮球',
+  fitness: '健身',
+  swimming: '游泳',
+} as const;
 
 @Injectable()
 export class ThoughtsService {
@@ -89,6 +94,149 @@ export class ThoughtsService {
     });
     if (!thought) throw new NotFoundException('内容不存在');
     return this.formatThought(thought, userId);
+  }
+
+  async getInsights() {
+    const [sportThoughts, investmentThoughts] = await Promise.all([
+      this.prisma.thought.findMany({
+        where: { type: 'sport', deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: userSelect },
+          _count: { select: { comments: true } },
+        },
+      }),
+      this.prisma.thought.findMany({
+        where: { type: 'investment', deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: userSelect },
+          _count: { select: { comments: true } },
+        },
+      }),
+    ]);
+
+    const totalDuration = sportThoughts.reduce(
+      (sum, thought) => sum + (thought.sportDuration ?? 0),
+      0,
+    );
+    const totalCalories = sportThoughts.reduce(
+      (sum, thought) => sum + (thought.sportCalories ?? 0),
+      0,
+    );
+    const sportPostsWithDuration = sportThoughts.filter(
+      (thought) => thought.sportDuration !== null,
+    ).length;
+    const sportPostsWithCalories = sportThoughts.filter(
+      (thought) => thought.sportCalories !== null,
+    ).length;
+
+    return {
+      sport: {
+        totalPosts: sportThoughts.length,
+        totalDuration,
+        totalCalories,
+        avgDuration: sportPostsWithDuration
+          ? Math.round(totalDuration / sportPostsWithDuration)
+          : 0,
+        avgCalories: sportPostsWithCalories
+          ? Math.round(totalCalories / sportPostsWithCalories)
+          : 0,
+        activeDays: this.countActiveDays(sportThoughts),
+        byType: this.getSportTypeStats(sportThoughts),
+        monthly: this.getMonthlyStats(sportThoughts),
+        recent: sportThoughts.slice(0, 5).map((thought) => ({
+          id: thought.id,
+          content: this.getContentPreview(thought.content),
+          sportType: thought.sportType,
+          sportDuration: thought.sportDuration,
+          sportCalories: thought.sportCalories,
+          createdAt: thought.createdAt.toISOString(),
+        })),
+      },
+      investment: {
+        totalPosts: investmentThoughts.length,
+        activeDays: this.countActiveDays(investmentThoughts),
+        totalImages: investmentThoughts.reduce(
+          (sum, thought) =>
+            sum + (Array.isArray(thought.images) ? thought.images.length : 0),
+          0,
+        ),
+        monthly: this.getMonthlyStats(investmentThoughts),
+        recent: investmentThoughts.slice(0, 5).map((thought) => ({
+          id: thought.id,
+          content: this.getContentPreview(thought.content),
+          imagesCount: Array.isArray(thought.images) ? thought.images.length : 0,
+          createdAt: thought.createdAt.toISOString(),
+        })),
+      },
+    };
+  }
+
+  private getSportTypeStats(
+    thoughts: Array<{
+      sportType: keyof typeof sportTypeLabels | null;
+      sportDuration: number | null;
+      sportCalories: number | null;
+    }>,
+  ) {
+    return Object.entries(sportTypeLabels).map(([value, label]) => {
+      const items = thoughts.filter((thought) => thought.sportType === value);
+      return {
+        value,
+        label,
+        count: items.length,
+        duration: items.reduce(
+          (sum, thought) => sum + (thought.sportDuration ?? 0),
+          0,
+        ),
+        calories: items.reduce(
+          (sum, thought) => sum + (thought.sportCalories ?? 0),
+          0,
+        ),
+      };
+    });
+  }
+
+  private getMonthlyStats(thoughts: Array<{ createdAt: Date }>) {
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(
+        now.getFullYear(),
+        now.getMonth() - (5 - index),
+        1,
+      );
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return {
+        value,
+        label: `${date.getMonth() + 1}月`,
+        count: 0,
+      };
+    });
+    const monthByValue = new Map(months.map((month) => [month.value, month]));
+    thoughts.forEach((thought) => {
+      const value = `${thought.createdAt.getFullYear()}-${String(
+        thought.createdAt.getMonth() + 1,
+      ).padStart(2, '0')}`;
+      const month = monthByValue.get(value);
+      if (month) month.count += 1;
+    });
+    return months;
+  }
+
+  private countActiveDays(thoughts: Array<{ createdAt: Date }>) {
+    return new Set(
+      thoughts.map((thought) => thought.createdAt.toISOString().slice(0, 10)),
+    ).size;
+  }
+
+  private getContentPreview(content: string) {
+    return content
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 80);
   }
 
   async create(userId: number, dto: CreateThoughtDto, imageUrls: string[]) {

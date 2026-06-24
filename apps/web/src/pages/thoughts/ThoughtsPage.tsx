@@ -79,6 +79,57 @@ function ossImageUrl(url: string, width: number) {
   return `${url}${separator}x-oss-process=image/resize,w_${width}/quality,q_82/format,webp`
 }
 
+function ossImageSrcSet(url: string, widths: number[]) {
+  if (!url.includes('.aliyuncs.com/') || url.includes('x-oss-process=')) return undefined
+  return widths.map((width) => `${ossImageUrl(url, width)} ${width}w`).join(', ')
+}
+
+function preloadOssImage(url: string, width: number) {
+  const image = document.createElement('img')
+  image.decoding = 'async'
+  image.src = ossImageUrl(url, width)
+}
+
+function OptimizedImage({
+  url,
+  alt = '',
+  width,
+  widths,
+  sizes,
+  className,
+  loading = 'lazy',
+  fetchPriority,
+}: {
+  url: string
+  alt?: string
+  width: number
+  widths: number[]
+  sizes: string
+  className?: string
+  loading?: 'lazy' | 'eager'
+  fetchPriority?: 'high' | 'low' | 'auto'
+}) {
+  const [loaded, setLoaded] = useState(false)
+
+  return (
+    <img
+      src={ossImageUrl(url, width)}
+      srcSet={ossImageSrcSet(url, widths)}
+      sizes={sizes}
+      alt={alt}
+      className={cn(
+        'bg-[var(--color-surface-2)] transition-[opacity,transform] duration-300',
+        loaded ? 'opacity-100' : 'opacity-0',
+        className
+      )}
+      loading={loading}
+      decoding="async"
+      fetchPriority={fetchPriority}
+      onLoad={() => setLoaded(true)}
+    />
+  )
+}
+
 // ── API hooks ──────────────────────────────────────────────────────────────
 function useThoughts(type?: ThoughtType) {
   return useQuery({
@@ -113,16 +164,16 @@ function ImageGrid({ images, onPreview }: { images: string[]; onPreview: (i: num
           key={i}
           onClick={() => onPreview(i)}
           className={cn(
-            'aspect-square overflow-hidden group',
+            'aspect-square overflow-hidden bg-[var(--color-surface-2)] group',
             images.length === 1 && 'aspect-video max-w-sm rounded-[var(--radius-md)]'
           )}
         >
-          <img
-            src={ossImageUrl(url, imageWidth)}
-            alt=""
+          <OptimizedImage
+            url={url}
+            width={imageWidth}
+            widths={images.length === 1 ? [360, 720, 900] : [180, 360, 520]}
+            sizes={images.length === 1 ? '(max-width: 640px) 100vw, 384px' : '(max-width: 640px) 33vw, 180px'}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-            decoding="async"
           />
         </button>
       ))}
@@ -368,6 +419,13 @@ function ThoughtDetailModal({
   const images = thought?.images ?? []
   const currentImage = images[Math.min(activeImage, Math.max(images.length - 1, 0))]
 
+  useEffect(() => {
+    if (!open || images.length <= 1) return
+    const next = images[(activeImage + 1) % images.length]
+    const prev = images[(activeImage - 1 + images.length) % images.length]
+    ;[next, prev].forEach((url) => preloadOssImage(url, 1200))
+  }, [activeImage, images, open])
+
   return (
     <>
       <Modal
@@ -405,11 +463,14 @@ function ThoughtDetailModal({
             {images.length > 0 && (
               <section className="relative min-h-[300px] overflow-hidden bg-[var(--color-surface-2)] lg:min-h-[560px]">
                 <div className="absolute inset-0">
-                  <img
-                    src={ossImageUrl(currentImage, 1200)}
-                    alt=""
+                  <OptimizedImage
+                    key={currentImage}
+                    url={currentImage}
+                    width={1200}
+                    widths={[640, 900, 1200, 1600]}
+                    sizes="(max-width: 1024px) 100vw, 650px"
                     className="h-full w-full object-cover"
-                    decoding="async"
+                    loading="eager"
                     fetchPriority="high"
                   />
                 </div>
@@ -427,11 +488,12 @@ function ThoughtDetailModal({
                             : 'border-white/10 opacity-55 hover:opacity-90'
                         )}
                       >
-                        <img
-                          src={ossImageUrl(image, 180)}
-                          alt=""
+                        <OptimizedImage
+                          url={image}
+                          width={180}
+                          widths={[120, 180, 240]}
+                          sizes="56px"
                           className="h-full w-full object-cover"
-                          decoding="async"
                         />
                       </button>
                     ))}
@@ -690,7 +752,14 @@ function PostThoughtForm({
             <div className="flex gap-2 flex-wrap">
               {images.map((image) => (
                 <div key={image.id} className="relative w-16 h-16 rounded-[var(--radius-sm)] overflow-hidden">
-                  <img src={image.previewUrl} alt={image.name} className="w-full h-full object-cover" />
+                  <OptimizedImage
+                    url={image.previewUrl}
+                    alt={image.name}
+                    width={160}
+                    widths={[120, 160, 240]}
+                    sizes="64px"
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => setImages(images.filter((item) => item.id !== image.id))}

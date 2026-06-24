@@ -39,6 +39,12 @@ export class ThoughtsController {
     return this.thoughts.findAll(dto, user?.id);
   }
 
+  @Public()
+  @Get('insights')
+  getInsights() {
+    return this.thoughts.getInsights();
+  }
+
   @OptionalAuth()
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user?: JwtUser) {

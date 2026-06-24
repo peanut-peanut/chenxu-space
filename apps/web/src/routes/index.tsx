@@ -4,6 +4,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { HomePage } from '@/pages/home/HomePage'
 import { ThoughtsPage } from '@/pages/thoughts/ThoughtsPage'
 import { CatsPage } from '@/pages/cats/CatsPage'
+import { InsightsPage } from '@/pages/insights/InsightsPage'
 import { ArticlesPage } from '@/pages/articles/ArticlesPage'
 import { ArticleDetailPage } from '@/pages/articles/ArticleDetailPage'
 import { ResourcesPage } from '@/pages/resources/ResourcesPage'
@@ -26,6 +27,7 @@ const rootRoute = createRootRoute({
 const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
 const dailyRoute = createRoute({ getParentRoute: () => rootRoute, path: '/daily', component: ThoughtsPage })
 const catsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/cats', component: CatsPage })
+const insightsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/insights', component: InsightsPage })
 const thoughtsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/thoughts', component: ThoughtsPage })
 const articlesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/articles', component: ArticlesPage })
 const articleDetailRoute = createRoute({ getParentRoute: () => rootRoute, path: '/articles/$slug', component: ArticleDetailPage })
@@ -37,7 +39,7 @@ const profileRoute = createRoute({ getParentRoute: () => rootRoute, path: '/prof
 const adminRoute = createRoute({ getParentRoute: () => rootRoute, path: '/admin', component: AdminPage })
 
 const routeTree = rootRoute.addChildren([
-  homeRoute, dailyRoute, catsRoute, thoughtsRoute, articlesRoute, articleDetailRoute,
+  homeRoute, dailyRoute, catsRoute, insightsRoute, thoughtsRoute, articlesRoute, articleDetailRoute,
   resourcesRoute, filesRoute, loginRoute, registerRoute, profileRoute, adminRoute,
 ])
 

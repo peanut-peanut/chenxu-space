@@ -2,7 +2,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import {
-  Home, CalendarDays, Cat, FolderOpen, LogIn,
+  Home, CalendarDays, Cat, FolderOpen, LogIn, BarChart3,
   Settings, Menu, X, Sparkles
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
@@ -15,6 +15,7 @@ const navItems = [
   { to: '/', label: '首页', icon: Home },
   { to: '/daily', label: '日常', icon: CalendarDays },
   { to: '/cats', label: '猫猫', icon: Cat },
+  { to: '/insights', label: '面板', icon: BarChart3 },
   { to: '/resources', label: '资源', icon: FolderOpen },
 ]
 

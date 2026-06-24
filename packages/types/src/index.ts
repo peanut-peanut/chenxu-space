@@ -57,6 +57,57 @@ export interface ThoughtComment {
   createdAt: string
 }
 
+export interface MonthlyThoughtStat {
+  value: string
+  label: string
+  count: number
+}
+
+export interface SportTypeStat {
+  value: SportType
+  label: string
+  count: number
+  duration: number
+  calories: number
+}
+
+export interface SportInsightRecentItem {
+  id: number
+  content: string
+  sportType: SportType | null
+  sportDuration: number | null
+  sportCalories: number | null
+  createdAt: string
+}
+
+export interface InvestmentInsightRecentItem {
+  id: number
+  content: string
+  imagesCount: number
+  createdAt: string
+}
+
+export interface ThoughtInsights {
+  sport: {
+    totalPosts: number
+    totalDuration: number
+    totalCalories: number
+    avgDuration: number
+    avgCalories: number
+    activeDays: number
+    byType: SportTypeStat[]
+    monthly: MonthlyThoughtStat[]
+    recent: SportInsightRecentItem[]
+  }
+  investment: {
+    totalPosts: number
+    activeDays: number
+    totalImages: number
+    monthly: MonthlyThoughtStat[]
+    recent: InvestmentInsightRecentItem[]
+  }
+}
+
 // ===== Article =====
 export type ArticleStatus = 'draft' | 'published'
 
