@@ -2,7 +2,6 @@ import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Clock, Eye, Calendar, Tag, ArrowLeft } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import MDEditor from '@uiw/react-md-editor'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { Button } from '@/components/ui/button'
@@ -38,12 +37,12 @@ export function ArticleDetailPage() {
       <article className="max-w-3xl mx-auto px-4 py-10">
         {/* Back */}
         <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="mb-8">
-          <Link to="/articles">
+          <a href="/articles">
             <Button variant="ghost" size="sm">
               <ArrowLeft size={14} />
               返回文章
             </Button>
-          </Link>
+          </a>
         </motion.div>
 
         {/* Cover */}

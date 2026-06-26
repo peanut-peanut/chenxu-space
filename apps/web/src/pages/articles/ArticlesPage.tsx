@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Clock, Eye, Tag, BookOpen } from 'lucide-react'
@@ -36,7 +35,7 @@ function ArticleCard({ article, index }: { article: ArticleListItem; index: numb
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <Link to="/articles/$slug" params={{ slug: article.slug }}>
+      <a href={`/articles/${article.slug}`}>
         <Card hover glow className="group">
           <CardContent className="p-0">
             {article.cover && (
@@ -90,7 +89,7 @@ function ArticleCard({ article, index }: { article: ArticleListItem; index: numb
             </div>
           </CardContent>
         </Card>
-      </Link>
+      </a>
     </motion.div>
   )
 }

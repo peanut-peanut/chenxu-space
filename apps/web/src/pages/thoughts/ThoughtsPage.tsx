@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Modal } from 'antd'
 import {
   Heart,
@@ -147,7 +147,7 @@ function useThoughts(type?: ThoughtType) {
     },
     select: (data) => ({
       thoughts: data.pages.flatMap((p) => p.data.data),
-      hasMore: data.pages.at(-1)?.data.meta.page < data.pages.at(-1)?.data.meta.totalPages,
+      hasMore: (data.pages.at(-1)?.data.meta.page ?? 0) < (data.pages.at(-1)?.data.meta.totalPages ?? 0),
     }),
   })
 }
