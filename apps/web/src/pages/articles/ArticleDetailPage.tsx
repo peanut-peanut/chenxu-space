@@ -1,4 +1,3 @@
-import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Clock, Eye, Calendar, Tag, ArrowLeft } from 'lucide-react'
@@ -10,7 +9,7 @@ import { formatDate } from '@/lib/utils'
 import type { Article, ApiResponse } from '@chenxu/types'
 
 export function ArticleDetailPage() {
-  const { slug } = useParams({ from: '/articles/$slug' })
+  const slug = window.location.pathname.split('/articles/')[1] ?? ''
 
   const { data: article, isLoading } = useQuery({
     queryKey: ['article', slug],
