@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
+import { message } from 'antd'
 import { useAuthStore } from '@/store/auth'
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
@@ -33,6 +34,9 @@ api.interceptors.response.use(
           }
         }
       }
+      if (payload.code === 429) {
+        message.error('操作太频繁，请稍后再试')
+      }
       return Promise.reject(payload)
     }
 
@@ -56,6 +60,14 @@ api.interceptors.response.use(
         }
       }
     }
+
+    const status = error.response?.status
+    if (status === 429) {
+      message.error('操作太频繁，请稍后再试')
+    } else if (!error.response) {
+      message.error('网络连接失败，请检查网络')
+    }
+
     return Promise.reject(error.response?.data ?? error)
   }
 )

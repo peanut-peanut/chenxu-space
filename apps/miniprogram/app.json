@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/daily/daily",
+    "pages/cats/cats",
+    "pages/insights/insights",
+    "pages/resources/resources",
+    "pages/profile/profile",
+    "pages/login/login"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "chenxu.space",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f6f6f6"
+  },
+  "tabBar": {
+    "color": "#aaaaaa",
+    "selectedColor": "#ff2442",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/daily/daily",
+        "text": "日常",
+        "iconPath": "assets/icons/daily.png",
+        "selectedIconPath": "assets/icons/daily-active.png"
+      },
+      {
+        "pagePath": "pages/cats/cats",
+        "text": "猫猫",
+        "iconPath": "assets/icons/cats.png",
+        "selectedIconPath": "assets/icons/cats-active.png"
+      },
+      {
+        "pagePath": "pages/insights/insights",
+        "text": "面板",
+        "iconPath": "assets/icons/insights.png",
+        "selectedIconPath": "assets/icons/insights-active.png"
+      },
+      {
+        "pagePath": "pages/resources/resources",
+        "text": "资源",
+        "iconPath": "assets/icons/resources.png",
+        "selectedIconPath": "assets/icons/resources-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/icons/profile.png",
+        "selectedIconPath": "assets/icons/profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

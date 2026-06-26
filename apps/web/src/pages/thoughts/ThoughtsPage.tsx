@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Modal } from 'antd'
 import {
   Heart,
@@ -131,14 +131,24 @@ function OptimizedImage({
 }
 
 // ── API hooks ──────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20
+
 function useThoughts(type?: ThoughtType) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['thoughts', type ?? 'all'],
-    queryFn: () =>
+    queryFn: ({ pageParam = 1 }) =>
       api.get<never, ApiResponse<PaginatedResult<Thought>>>(
-        `/thoughts?pageSize=20${type ? `&type=${type}` : ''}`
+        `/thoughts?page=${pageParam}&pageSize=${PAGE_SIZE}${type ? `&type=${type}` : ''}`
       ),
-    select: (res) => res.data.data,
+    initialPageParam: 1,
+    getNextPageParam: (last) => {
+      const { page, totalPages } = last.data.meta
+      return page < totalPages ? page + 1 : undefined
+    },
+    select: (data) => ({
+      thoughts: data.pages.flatMap((p) => p.data.data),
+      hasMore: data.pages.at(-1)?.data.meta.page < data.pages.at(-1)?.data.meta.totalPages,
+    }),
   })
 }
 
@@ -785,7 +795,8 @@ export function ThoughtsPage() {
   const [selectedType, setSelectedType] = useState<ThoughtType | undefined>()
   const [layout, setLayout] = useState<FeedLayout>('list')
   const [selectedThought, setSelectedThought] = useState<Thought | null>(null)
-  const { data: thoughts = [], isLoading } = useThoughts(selectedType)
+  const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useThoughts(selectedType)
+  const thoughts = data?.thoughts ?? []
   const defaultPostType = selectedType ?? 'daily'
 
   const openCreateForm = () => {
@@ -912,18 +923,35 @@ export function ThoughtsPage() {
             </p>
           </div>
         ) : (
-          <motion.div
-            layout
-            className={layout === 'masonry' ? 'columns-1 gap-4 sm:columns-2 lg:columns-3' : 'space-y-4'}
-          >
-            {thoughts.map((t) => layout === 'masonry' ? (
-              <div key={t.id} className="mb-4 break-inside-avoid">
-                <ThoughtCard thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
+          <>
+            <motion.div
+              layout
+              className={layout === 'masonry' ? 'columns-1 gap-4 sm:columns-2 lg:columns-3' : 'space-y-4'}
+            >
+              {thoughts.map((t) => layout === 'masonry' ? (
+                <div key={t.id} className="mb-4 break-inside-avoid">
+                  <ThoughtCard thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
+                </div>
+              ) : (
+                <ThoughtCard key={t.id} thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
+              ))}
+            </motion.div>
+            {hasNextPage && (
+              <div className="mt-6 flex justify-center">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fetchNextPage()}
+                  loading={isFetchingNextPage}
+                >
+                  加载更多
+                </Button>
               </div>
-            ) : (
-              <ThoughtCard key={t.id} thought={t} onOpenDetail={setSelectedThought} onEdit={openEditForm} />
-            ))}
-          </motion.div>
+            )}
+            {!hasNextPage && thoughts.length > 0 && (
+              <p className="mt-8 text-center text-xs text-[var(--color-text-tertiary)]">已加载全部内容</p>
+            )}
+          </>
         )}
       </PageContainer>
       <ThoughtDetailModal

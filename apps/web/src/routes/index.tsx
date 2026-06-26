@@ -5,9 +5,6 @@ import { HomePage } from '@/pages/home/HomePage'
 import { ThoughtsPage } from '@/pages/thoughts/ThoughtsPage'
 import { CatsPage } from '@/pages/cats/CatsPage'
 import { InsightsPage } from '@/pages/insights/InsightsPage'
-import { ArticlesPage } from '@/pages/articles/ArticlesPage'
-import { ArticleDetailPage } from '@/pages/articles/ArticleDetailPage'
-import { ResourcesPage } from '@/pages/resources/ResourcesPage'
 import { FilesPage } from '@/pages/files/FilesPage'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -29,18 +26,15 @@ const dailyRoute = createRoute({ getParentRoute: () => rootRoute, path: '/daily'
 const catsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/cats', component: CatsPage })
 const insightsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/insights', component: InsightsPage })
 const thoughtsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/thoughts', component: ThoughtsPage })
-const articlesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/articles', component: ArticlesPage })
-const articleDetailRoute = createRoute({ getParentRoute: () => rootRoute, path: '/articles/$slug', component: ArticleDetailPage })
-const resourcesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/resources', component: ResourcesPage })
-const filesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/files', component: FilesPage })
+const resourcesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/resources', component: FilesPage })
 const loginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/login', component: LoginPage })
 const registerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/register', component: RegisterPage })
 const profileRoute = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfilePage })
 const adminRoute = createRoute({ getParentRoute: () => rootRoute, path: '/admin', component: AdminPage })
 
 const routeTree = rootRoute.addChildren([
-  homeRoute, dailyRoute, catsRoute, insightsRoute, thoughtsRoute, articlesRoute, articleDetailRoute,
-  resourcesRoute, filesRoute, loginRoute, registerRoute, profileRoute, adminRoute,
+  homeRoute, dailyRoute, catsRoute, insightsRoute, thoughtsRoute,
+  resourcesRoute, loginRoute, registerRoute, profileRoute, adminRoute,
 ])
 
 export const router = createRouter({ routeTree })

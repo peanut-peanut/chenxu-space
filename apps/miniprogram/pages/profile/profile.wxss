@@ -1,0 +1,150 @@
+.page-wrap { background: var(--color-bg); min-height: 100vh; }
+
+/* hero 区 */
+.hero {
+  position: relative;
+  padding-bottom: 32rpx;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%);
+  z-index: 0;
+}
+
+/* 背景噪点感 */
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.03);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 56rpx 32rpx 28rpx;
+}
+
+.hero-avatar {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.hero-avatar-placeholder {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hero-avatar-icon { font-size: 64rpx; }
+
+.hero-info { flex: 1; min-width: 0; }
+
+.hero-name {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-sub {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.6);
+}
+
+/* 数据统计行 */
+.hero-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  padding: 0 32rpx;
+  gap: 48rpx;
+}
+
+.hero-stat { display: flex; flex-direction: column; gap: 4rpx; }
+
+.hero-stat-num {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hero-stat-label {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.55);
+}
+
+/* 快捷入口行 */
+.shortcut-row {
+  margin: 20rpx 24rpx 0;
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 28rpx 28rpx;
+}
+
+.shortcut-icon { font-size: 36rpx; }
+
+.shortcut-label {
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 功能菜单 */
+.menu-group {
+  margin: 20rpx 24rpx 0;
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx 28rpx;
+}
+
+.menu-icon { font-size: 36rpx; flex-shrink: 0; }
+
+.menu-label {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+}
+
+.menu-arrow {
+  font-size: 36rpx;
+  color: var(--color-text-tertiary);
+}

@@ -1,0 +1,134 @@
+<view class="page-wrap">
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view class="skeleton skeleton-block"></view>
+    <view class="skeleton skeleton-block"></view>
+  </view>
+
+  <view wx:elif="{{sport && investment}}" class="content">
+
+    <!-- 运动卡 -->
+    <view class="section-card">
+      <view class="section-head">
+        <text class="section-label">运动</text>
+        <text class="section-sub">近 6 个月</text>
+      </view>
+
+      <view class="stats-grid">
+        <view class="stat-row">
+          <text class="stat-label">记录</text>
+          <text class="stat-value">{{sport.totalPosts}}<text class="stat-unit">条</text></text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-row">
+          <text class="stat-label">时长</text>
+          <text class="stat-value">{{sport.totalDuration}}<text class="stat-unit">分</text></text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-row">
+          <text class="stat-label">消耗</text>
+          <text class="stat-value">{{sport.totalCalories}}<text class="stat-unit">卡</text></text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-row">
+          <text class="stat-label">活跃</text>
+          <text class="stat-value">{{sport.activeDays}}<text class="stat-unit">天</text></text>
+        </view>
+      </view>
+
+      <view class="chart-wrap">
+        <view class="chart-meta">
+          <text class="chart-title">月度发布</text>
+          <text class="chart-hint">均 {{sport.avgDuration}} 分 · {{sport.avgCalories}} 卡</text>
+        </view>
+        <view class="bar-chart">
+          <view wx:for="{{sport.monthly}}" wx:key="value" class="bar-col">
+            <view class="bar-track">
+              <view class="bar bar--emerald" style="height: {{item.heightPct}}%;"></view>
+            </view>
+            <text class="bar-label">{{item.label}}</text>
+            <text class="bar-count">{{item.count}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{sport.byType.length > 0}}" class="type-dist">
+        <text class="chart-title" style="display:block; margin-bottom:16rpx;">类型分布</text>
+        <view wx:for="{{sport.byType}}" wx:key="value" class="dist-row">
+          <view class="dist-meta">
+            <text class="dist-name">{{item.label}}</text>
+            <text class="dist-count">{{item.count}} 次 · {{item.duration}} 分</text>
+          </view>
+          <view class="dist-track">
+            <view class="dist-bar dist-bar--emerald" style="width: {{item.widthPct}}%;"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 投资卡 -->
+    <view class="section-card">
+      <view class="section-head">
+        <text class="section-label">投资</text>
+        <text class="section-sub">近 6 个月</text>
+      </view>
+
+      <view class="stats-grid" style="grid-template-columns: 1fr auto 1fr auto 1fr;">
+        <view class="stat-row">
+          <text class="stat-label">记录</text>
+          <text class="stat-value">{{investment.totalPosts}}<text class="stat-unit">条</text></text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-row">
+          <text class="stat-label">活跃</text>
+          <text class="stat-value">{{investment.activeDays}}<text class="stat-unit">天</text></text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-row">
+          <text class="stat-label">配图</text>
+          <text class="stat-value">{{investment.totalImages}}<text class="stat-unit">张</text></text>
+        </view>
+      </view>
+
+      <view class="chart-wrap">
+        <view class="chart-meta">
+          <text class="chart-title">月度发布</text>
+        </view>
+        <view class="bar-chart">
+          <view wx:for="{{investment.monthly}}" wx:key="value" class="bar-col">
+            <view class="bar-track">
+              <view class="bar bar--rose" style="height: {{item.heightPct}}%;"></view>
+            </view>
+            <text class="bar-label">{{item.label}}</text>
+            <text class="bar-count">{{item.count}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 最近记录 -->
+    <view class="section-card">
+      <text class="section-label" style="display:block; margin-bottom:20rpx;">最近记录</text>
+
+      <view class="recent-section">
+        <text class="recent-type-label recent-type-label--emerald">运动</text>
+        <view wx:if="{{sport.recent.length === 0}}" class="recent-empty">暂无</view>
+        <view wx:for="{{sport.recent}}" wx:key="id" class="recent-item">
+          <text class="recent-content">{{item.contentText || '未填写内容'}}</text>
+          <text class="recent-time">{{item.createdAtRelative}}</text>
+        </view>
+      </view>
+
+      <view class="recent-divider"></view>
+
+      <view class="recent-section">
+        <text class="recent-type-label recent-type-label--rose">投资</text>
+        <view wx:if="{{investment.recent.length === 0}}" class="recent-empty">暂无</view>
+        <view wx:for="{{investment.recent}}" wx:key="id" class="recent-item">
+          <text class="recent-content">{{item.contentText || '未填写内容'}}</text>
+          <text class="recent-time">{{item.createdAtRelative}}</text>
+        </view>
+      </view>
+    </view>
+
+  </view>
+</view>

@@ -1,0 +1,49 @@
+{
+    "appid": "wx0b3fe5b774c41250",
+    "projectname": "chenxu-space",
+    "description": "chenxu.space 小程序",
+    "setting": {
+        "urlCheck": true,
+        "es6": true,
+        "enhance": true,
+        "postcss": true,
+        "minified": true,
+        "newFeature": true,
+        "coverView": true,
+        "nodeModules": false,
+        "autoAudits": false,
+        "showShadowRootInWxmlPanel": true,
+        "packNpmManually": false,
+        "enableEngineNative": false,
+        "useIsolateContext": true,
+        "useCompilerPlugins": false,
+        "uploadWithSourceMap": true,
+        "useComputedStyleInsteadOfInlineStyle": false,
+        "compileHotReLoad": false,
+        "compileWorklet": false,
+        "uglifyFileName": false,
+        "packNpmRelationList": [],
+        "minifyWXSS": true,
+        "minifyWXML": true,
+        "localPlugins": false,
+        "disableUseStrict": false,
+        "condition": false,
+        "swc": false,
+        "disableSWC": true,
+        "babelSetting": {
+            "ignore": [],
+            "disablePlugins": [],
+            "outputPath": ""
+        }
+    },
+    "compileType": "miniprogram",
+    "libVersion": "3.4.0",
+    "srcMiniprogramRoot": "./",
+    "condition": {},
+    "simulatorPluginLibVersion": {},
+    "packOptions": {
+        "ignore": [],
+        "include": []
+    },
+    "editorSetting": {}
+}

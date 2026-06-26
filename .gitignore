@@ -38,3 +38,4 @@ logs/
 *.dump
 *.bak
 backup_*
+apps/miniprogram/project.private.config.json

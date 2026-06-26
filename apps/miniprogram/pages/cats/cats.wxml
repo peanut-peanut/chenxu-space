@@ -1,0 +1,60 @@
+<view class="page-wrap">
+  <!-- 猫咪多选卡片 -->
+  <view wx:if="{{cats.length > 0}}" class="cats-row">
+    <view
+      wx:for="{{cats}}"
+      wx:key="id"
+      class="cat-pill {{selectedCats.includes(item.id) ? 'cat-pill--active' : ''}}"
+      bindtap="onCatFilter"
+      data-value="{{item.id}}"
+    >
+      <text class="cat-pill-emoji">🐱</text>
+      <view class="cat-pill-info">
+        <view class="cat-pill-name-row">
+          <text class="cat-pill-name">{{item.name}}</text>
+          <text class="cat-pill-gender cat-pill-gender--{{item.gender.includes('公') ? 'male' : 'female'}}">{{item.gender}}</text>
+        </view>
+        <text class="cat-pill-age">{{item.age}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 媒体类型 tab（单行，下划线风格）-->
+  <view class="media-tab-bar">
+    <view class="media-tab {{mediaFilter === 'all' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="all">全部</view>
+    <view class="media-tab {{mediaFilter === 'image' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="image">照片</view>
+    <view class="media-tab {{mediaFilter === 'video' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="video">视频</view>
+  </view>
+
+  <!-- 骨架屏 -->
+  <view wx:if="{{loading && media.length === 0}}" class="masonry-wrap">
+    <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="skeleton" style="height: {{index % 2 === 0 ? 320 : 400}}rpx; border-radius: 24rpx;"></view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{!loading && media.length === 0}}" class="empty-state">
+    <text class="empty-icon">🐱</text>
+    <text>还没有猫猫照片或视频</text>
+  </view>
+
+  <!-- 瀑布流 -->
+  <view wx:else class="masonry-wrap">
+    <view wx:for="{{media}}" wx:key="id" class="media-item" bindtap="onPreview" data-url="{{item.url}}" data-type="{{item.type}}">
+      <view class="media-item-wrap">
+        <image src="{{item.thumbUrl}}" mode="widthFix" class="media-thumb" lazy-load />
+        <view wx:if="{{item.type === 'video'}}" class="video-overlay">
+          <text class="play-icon">▶</text>
+        </view>
+      </view>
+      <view wx:if="{{item.note || item.dateLabel}}" class="media-info">
+        <text wx:if="{{item.note}}" class="media-note-text">{{item.note}}</text>
+        <text wx:if="{{item.dateLabel}}" class="media-date">{{item.dateLabel}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="load-more">
+    <text wx:if="{{loadingMore}}">加载中...</text>
+    <text wx:elif="{{!hasMore && media.length > 0}}" class="no-more">已加载全部</text>
+  </view>
+</view>

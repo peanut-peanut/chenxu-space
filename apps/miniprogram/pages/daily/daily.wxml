@@ -1,0 +1,85 @@
+<view class="page-wrap">
+  <!-- type tab -->
+  <scroll-view class="type-scroll" scroll-x show-scrollbar="{{false}}">
+    <view class="type-tabs">
+      <view
+        wx:for="{{typeTabs}}"
+        wx:key="value"
+        class="type-tab {{selectedType === item.value ? 'type-tab--active' : ''}}"
+        bindtap="onSelectType"
+        data-value="{{item.value}}"
+      >{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 骨架屏 -->
+  <view wx:if="{{loading && thoughts.length === 0}}" class="skeleton-list">
+    <view wx:for="{{[1,2,3]}}" wx:key="*this" class="skeleton-card skeleton"></view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{!loading && thoughts.length === 0}}" class="empty-state">
+    <text class="empty-icon">📝</text>
+    <text>暂无内容</text>
+  </view>
+
+  <!-- 列表 -->
+  <view wx:else class="thought-list">
+    <view
+      wx:for="{{thoughts}}"
+      wx:key="id"
+      class="thought-card"
+      bindtap="onOpenDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="card-header">
+        <image class="avatar" src="{{item.user.avatar || ''}}" mode="aspectFill" />
+        <view class="card-meta">
+          <text class="nickname">{{item.user.nickname}}</text>
+          <text class="time">{{item.createdAtRelative}}</text>
+        </view>
+        <view class="badge badge-{{item.type}}">{{item.typeLabel}}</view>
+      </view>
+
+      <text class="content-text">{{item.contentText}}</text>
+
+      <view wx:if="{{item.type === 'sport' && item.hasSportMeta}}" class="sport-meta">
+        <text wx:if="{{item.sportTypeLabel}}" class="sport-tag">{{item.sportTypeLabel}}</text>
+        <text wx:if="{{item.sportDuration}}" class="sport-tag">{{item.sportDuration}} 分钟</text>
+        <text wx:if="{{item.sportCalories}}" class="sport-tag">{{item.sportCalories}} 千卡</text>
+      </view>
+
+      <view wx:if="{{item.images.length > 0}}" class="image-grid image-grid--{{item.images.length > 4 ? 'three' : item.images.length > 1 ? 'two' : 'one'}}">
+        <image
+          wx:for="{{item.images}}"
+          wx:for-item="img"
+          wx:key="*this"
+          src="{{img}}"
+          mode="aspectFill"
+          class="grid-image"
+          lazy-load
+          catchtap="onPreviewImage"
+          data-urls="{{item.images}}"
+          data-current="{{img}}"
+        />
+      </view>
+
+      <view class="card-actions">
+        <view class="action-btn {{item.liked ? 'action-btn--liked' : ''}}" catchtap="onToggleLike" data-id="{{item.id}}" data-index="{{index}}">
+          <text class="action-icon">{{item.liked ? '❤️' : '🤍'}}</text>
+          <text wx:if="{{item.likesCount > 0}}">{{item.likesCount}}</text>
+        </view>
+        <view class="action-btn {{item.disliked ? 'action-btn--disliked' : ''}}" catchtap="onToggleDislike" data-id="{{item.id}}" data-index="{{index}}">
+          <text class="action-icon">👎</text>
+          <text>{{item.dislikesCount > 0 ? item.dislikesCount : '踩一下'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="load-more">
+      <text wx:if="{{loadingMore}}">加载中...</text>
+      <text wx:elif="{{!hasMore}}" class="no-more">已加载全部</text>
+      <view wx:elif="{{hasMore}}" class="load-more-btn" bindtap="onLoadMore">加载更多</view>
+    </view>
+  </view>
+</view>

@@ -43,11 +43,6 @@ const catTone: Record<CatId, string> = {
   liuliu: 'border-orange-400/30 bg-orange-400/10 text-orange-300',
 }
 
-const fallbackCats: CatProfile[] = [
-  { id: 'danhuang', name: '蛋黄', breed: '短毛金渐层', gender: '母猫', birthday: '2023-04-08' },
-  { id: 'liuliu', name: '六六', breed: '长毛橘猫', gender: '公猫', birthday: '2024-06-06' },
-]
-
 function ossImageUrl(url: string, width: number) {
   if (!url.includes('.aliyuncs.com/') || url.includes('x-oss-process=')) return url
   const separator = url.includes('?') ? '&' : '?'
@@ -394,8 +389,7 @@ export function CatsPage() {
   const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all')
   const [uploadOpen, setUploadOpen] = useState(false)
   const [preview, setPreview] = useState<CatMedia | null>(null)
-  const { data: catsData } = useCats()
-  const cats = catsData?.length ? catsData : fallbackCats
+  const { data: cats = [], isLoading: catsLoading } = useCats()
   const catById = useMemo(() => Object.fromEntries(cats.map((cat) => [cat.id, cat])) as Record<CatId, CatProfile>, [cats])
   const { data: media = [], isLoading } = useCatMedia(catFilter, mediaFilter)
 
@@ -413,25 +407,33 @@ export function CatsPage() {
           )}
         />
 
-        <div className="mb-6 grid gap-3 md:grid-cols-2">
-          {cats.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-              <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full border', catTone[cat.id])}>
-                <Cat size={22} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{cat.name}</h3>
-                  <GenderTag gender={cat.gender} />
-                  <span className="text-xs text-[var(--color-text-tertiary)]">{cat.breed}</span>
+        {catsLoading ? (
+          <div className="mb-6 grid gap-3 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="h-20 animate-pulse rounded-[var(--radius-lg)] bg-[var(--color-surface)]" />
+            ))}
+          </div>
+        ) : cats.length > 0 ? (
+          <div className="mb-6 grid gap-3 md:grid-cols-2">
+            {cats.map((cat) => (
+              <div key={cat.id} className="flex items-center gap-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+                <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-full border', catTone[cat.id])}>
+                  <Cat size={22} />
                 </div>
-                <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
-                  生日 {cat.birthday} · {catAge(cat.birthday)}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{cat.name}</h3>
+                    <GenderTag gender={cat.gender} />
+                    <span className="text-xs text-[var(--color-text-tertiary)]">{cat.breed}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-[var(--color-text-tertiary)]">
+                    生日 {cat.birthday} · {catAge(cat.birthday)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : null}
 
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
