@@ -20,7 +20,9 @@ Page({
     const { phone, password, loading } = this.data
     if (loading) return
     if (!phone.trim() || !password.trim()) {
-      this.setData({ error: '请填写手机号和密码' })
+      const message = '请填写手机号和密码'
+      this.setData({ error: message })
+      wx.showToast({ title: message, icon: 'none' })
       return
     }
 
@@ -31,7 +33,9 @@ Page({
       app.setUser(res.data)
       wx.switchTab({ url: '/pages/daily/daily' })
     } catch (err) {
-      this.setData({ error: err?.message || '手机号或密码错误' })
+      const message = err?.message || '手机号或密码错误'
+      this.setData({ error: message })
+      wx.showToast({ title: message, icon: 'none' })
     } finally {
       this.setData({ loading: false })
     }

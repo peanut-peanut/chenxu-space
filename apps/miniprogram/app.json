@@ -10,13 +10,13 @@
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "chenxu.space",
+    "navigationBarTitleText": "",
     "navigationBarTextStyle": "black",
     "backgroundColor": "#f6f6f6"
   },
   "tabBar": {
     "color": "#aaaaaa",
-    "selectedColor": "#ff2442",
+    "selectedColor": "#d9982f",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [

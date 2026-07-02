@@ -1,10 +1,13 @@
 <view class="container">
+  <view class="deco deco-1">🌿</view>
+  <view class="deco deco-2">🐾</view>
+
   <view class="header">
     <view class="logo-wrap">
-      <text class="logo-icon">✦</text>
+      <image class="logo-img" src="https://my-pan-disk.oss-cn-beijing.aliyuncs.com/%E5%85%B6%E4%BB%96%E8%B5%84%E6%BA%90/%E8%9B%8B%E9%BB%8466%E6%B2%99%E5%8F%91%E5%8D%A1%E9%80%9A%E7%89%88%E5%9C%86%E5%A4%B4%E5%83%8F.png" mode="aspectFill" />
     </view>
-    <text class="title">chenxu.space</text>
-    <text class="subtitle">登录以继续</text>
+    <text class="title">你好呀，欢迎回来</text>
+    <text class="subtitle">登录后同步你的点赞与收藏</text>
   </view>
 
   <view class="form">
@@ -37,7 +40,7 @@
     <view wx:if="{{error}}" class="error-msg">{{error}}</view>
 
     <button
-      class="btn btn-primary submit-btn"
+      class="submit-btn"
       bindtap="onSubmit"
       loading="{{loading}}"
       disabled="{{loading}}"

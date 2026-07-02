@@ -1,124 +1,141 @@
-.page-wrap { background: var(--color-bg); }
-
-/* 猫咪多选卡片行 */
-.cats-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
-  padding: 20rpx 24rpx 0;
+.page-wrap {
+  background: #f9f4ee;
+  min-height: 100vh;
 }
 
-.cat-pill {
+/* 猫咪资料卡片 */
+.cats-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32rpx;
+  padding: 32rpx 32rpx 0;
+}
+
+.cat-card {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
-  padding: 16rpx 24rpx;
-  box-shadow: var(--shadow-card);
-  flex: 1;
-  border: 2rpx solid transparent;
+  justify-content: space-around;
+ /* gap: 16rpx; */
+  background: #fdf7e7;
+  border-radius: 28rpx;
+  padding: 18rpx;
+  box-shadow: 0 8rpx 24rpx rgba(58, 39, 25, 0.08);
   transition: all 0.2s;
 }
 
-.cat-pill--active {
-  border-color: var(--color-red);
-  background: #fff8f9;
+.cat-card:active {
+  transform: scale(0.98);
 }
 
-.cat-pill-emoji {
-  font-size: 40rpx;
+.cat-card-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  display: block;
   flex-shrink: 0;
+  /* border-radius: 28rpx;
+  background: #ffffff; */
 }
 
-.cat-pill-info { flex: 1; min-width: 0; }
+.cat-card-info {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0;
+}
 
-.cat-pill-name-row {
+.cat-card-name-row {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  margin-bottom: 4rpx;
+  margin-bottom: 2rpx;
 }
 
-.cat-pill-name {
-  font-size: 28rpx;
+.cat-card-name {
+  font-size: 30rpx;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: #201c19;
+  line-height: 1.25;
 }
 
-.cat-pill-gender {
-  font-size: 20rpx;
-  padding: 2rpx 10rpx;
-  border-radius: var(--radius-full);
+.cat-card-gender {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40rpx;
+  height: 30rpx;
+  padding: 0 8rpx;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
   flex-shrink: 0;
 }
-.cat-pill-gender--female { color: #ff6b9d; background: rgba(255,107,157,0.1); }
-.cat-pill-gender--male   { color: #4a90d9; background: rgba(74,144,217,0.1); }
+.cat-card-gender--female { color: #eb5aa4; background: rgba(235, 90, 164, 0.12); }
+.cat-card-gender--male { color: #4f8edb; background: rgba(79, 142, 219, 0.12); }
 
-.cat-pill-age {
-  font-size: 22rpx;
-  color: var(--color-text-tertiary);
+.cat-card-age {
+  font-size: 24rpx;
+  color: #837b74;
+  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 媒体类型 tab */
-.media-tab-bar {
+/* 筛选 tab */
+.filter-tab-bar {
   display: flex;
-  background: var(--color-white);
+  align-items: center;
+  gap: 18rpx;
+  padding: 26rpx 24rpx 0;
+  overflow-x: auto;
+}
+
+.filter-tab-bar::-webkit-scrollbar { display: none; }
+
+.filter-tab {
+  flex-shrink: 0;
+  min-width: 76rpx;
+  height: 56rpx;
   padding: 0 24rpx;
-  margin-top: 16rpx;
-  border-bottom: 1rpx solid var(--color-border);
-}
-
-.media-tab {
-  padding: 20rpx 24rpx 16rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 255, 255, 0.72);
+  color: #938a82;
   font-size: 28rpx;
-  color: var(--color-text-tertiary);
-  position: relative;
+  font-weight: 700;
+  line-height: 56rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 14rpx rgba(58, 39, 25, 0.04);
 }
 
-.media-tab--active {
-  color: var(--color-text-primary);
-  font-weight: 600;
+.filter-tab--active {
+  background: #c4593b;
+  color: #ffffff;
+  box-shadow: 0 8rpx 18rpx rgba(196, 89, 59, 0.24);
 }
 
-.media-tab--active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 36rpx;
-  height: 4rpx;
-  background: var(--color-red);
-  border-radius: 2rpx;
-}
-
-/* 瀑布流 */
+/* 媒体网格 */
 .masonry-wrap {
-  padding: 16rpx 24rpx 120rpx;
+  padding: 20rpx 24rpx 120rpx;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8rpx;
   align-items: start;
 }
 
 .media-item {
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
+  background: transparent;
+  border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
 }
 
 .media-item-wrap { position: relative; }
 
 .media-thumb {
   width: 100%;
+  height: 214rpx;
   display: block;
-  min-height: 160rpx;
-  background: #f5f5f5;
+  background: #eee5dc;
+  border-radius: 20rpx;
 }
 
 .video-overlay {
@@ -136,7 +153,7 @@
 }
 .play-icon { font-size: 28rpx; color: #fff; margin-left: 6rpx; }
 
-.media-info { padding: 14rpx 16rpx 16rpx; }
+.media-info { padding: 10rpx 8rpx 12rpx; }
 
 .media-note-text {
   font-size: 24rpx;

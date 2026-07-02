@@ -1,11 +1,35 @@
 const { get } = require('../../utils/api')
 const { catAge, ossImageUrl, formatDate } = require('../../utils/format')
 
+const CAT_DISPLAY = {
+  danhuang: {
+    birthday: '2023-04-08',
+    avatarUrl: 'https://my-pan-disk.oss-cn-beijing.aliyuncs.com/%E5%85%B6%E4%BB%96%E8%B5%84%E6%BA%90/%E8%9B%8B%E9%BB%84%E6%B2%99%E5%8F%91%E5%8D%A1%E9%80%9A%E7%89%88%E5%9C%86%E5%A4%B4%E5%83%8F.png',
+    genderSymbol: '♀',
+  },
+  liuliu: {
+    birthday: '2024-06-06',
+    avatarUrl: 'https://my-pan-disk.oss-cn-beijing.aliyuncs.com/%E5%85%B6%E4%BB%96%E8%B5%84%E6%BA%90/66%E7%8C%AB%E6%8A%93%E6%9D%BF%E5%8D%A1%E9%80%9A%E7%89%88%E5%9C%86%E5%A4%B4%E5%83%8F.png',
+    genderSymbol: '♂',
+  },
+}
+
+function enrichCat(cat) {
+  const display = CAT_DISPLAY[cat.id] || {}
+  const birthday = display.birthday || cat.birthday
+  return {
+    ...cat,
+    ...display,
+    birthday,
+    age: catAge(birthday),
+  }
+}
+
 Page({
   data: {
     cats: [],
     media: [],
-    selectedCats: [],   // 多选，空数组=全部
+    selectedCats: [],   // 全部时包含所有猫，单只筛选时只保留对应 id
     mediaFilter: 'all',
     loading: false,
     catsLoading: true,
@@ -32,7 +56,7 @@ Page({
     this.setData({ catsLoading: true })
     try {
       const res = await get('/cats')
-      const cats = (res.data || []).map(c => ({ ...c, age: catAge(c.birthday) }))
+      const cats = (res.data || []).map(enrichCat)
       // 默认全部选中
       const selectedCats = cats.map(c => c.id)
       this.setData({ cats, selectedCats })
@@ -93,15 +117,8 @@ Page({
 
   onCatFilter(e) {
     const value = e.currentTarget.dataset.value
-    const { selectedCats, cats } = this.data
-    let next
-    if (selectedCats.includes(value)) {
-      // 至少保留一只
-      if (selectedCats.length === 1) return
-      next = selectedCats.filter(id => id !== value)
-    } else {
-      next = [...selectedCats, value]
-    }
+    const { cats } = this.data
+    const next = value === 'all' ? cats.map(cat => cat.id) : [value]
     this.setData({ selectedCats: next, media: [], page: 1, hasMore: true })
     this.loadMedia(true)
   },

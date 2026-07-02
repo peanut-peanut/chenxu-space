@@ -1,29 +1,36 @@
 <view class="page-wrap">
-  <!-- 猫咪多选卡片 -->
-  <view wx:if="{{cats.length > 0}}" class="cats-row">
+  <!-- 猫咪资料卡片 -->
+  <view wx:if="{{cats.length > 0}}" class="cats-card-grid">
     <view
       wx:for="{{cats}}"
       wx:key="id"
-      class="cat-pill {{selectedCats.includes(item.id) ? 'cat-pill--active' : ''}}"
+      class="cat-card"
       bindtap="onCatFilter"
       data-value="{{item.id}}"
     >
-      <text class="cat-pill-emoji">🐱</text>
-      <view class="cat-pill-info">
-        <view class="cat-pill-name-row">
-          <text class="cat-pill-name">{{item.name}}</text>
-          <text class="cat-pill-gender cat-pill-gender--{{item.gender.includes('公') ? 'male' : 'female'}}">{{item.gender}}</text>
+      <image class="cat-card-avatar" src="{{item.avatarUrl}}" mode="aspectFill" lazy-load />
+      <view class="cat-card-info">
+        <view class="cat-card-name-row">
+          <text class="cat-card-name">{{item.name}}</text>
+          <text class="cat-card-gender cat-card-gender--{{item.gender.includes('公') ? 'male' : 'female'}}">{{item.genderSymbol}}</text>
         </view>
-        <text class="cat-pill-age">{{item.age}}</text>
+        <text class="cat-card-age">{{item.age}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 媒体类型 tab（单行，下划线风格）-->
-  <view class="media-tab-bar">
-    <view class="media-tab {{mediaFilter === 'all' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="all">全部</view>
-    <view class="media-tab {{mediaFilter === 'image' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="image">照片</view>
-    <view class="media-tab {{mediaFilter === 'video' ? 'media-tab--active' : ''}}" bindtap="onMediaFilter" data-value="video">视频</view>
+  <!-- 筛选 tab -->
+  <view class="filter-tab-bar">
+    <view class="filter-tab {{cats.length > 0 && selectedCats.length === cats.length ? 'filter-tab--active' : ''}}" bindtap="onCatFilter" data-value="all">全部</view>
+    <view
+      wx:for="{{cats}}"
+      wx:key="id"
+      class="filter-tab {{selectedCats.length === 1 && selectedCats[0] === item.id ? 'filter-tab--active' : ''}}"
+      bindtap="onCatFilter"
+      data-value="{{item.id}}"
+    >{{item.name}}</view>
+    <view class="filter-tab {{mediaFilter === 'image' ? 'filter-tab--active' : ''}}" bindtap="onMediaFilter" data-value="image">照片</view>
+    <view class="filter-tab {{mediaFilter === 'video' ? 'filter-tab--active' : ''}}" bindtap="onMediaFilter" data-value="video">视频</view>
   </view>
 
   <!-- 骨架屏 -->
@@ -41,7 +48,7 @@
   <view wx:else class="masonry-wrap">
     <view wx:for="{{media}}" wx:key="id" class="media-item" bindtap="onPreview" data-url="{{item.url}}" data-type="{{item.type}}">
       <view class="media-item-wrap">
-        <image src="{{item.thumbUrl}}" mode="widthFix" class="media-thumb" lazy-load />
+        <image src="{{item.thumbUrl}}" mode="aspectFill" class="media-thumb" lazy-load />
         <view wx:if="{{item.type === 'video'}}" class="video-overlay">
           <text class="play-icon">▶</text>
         </view>

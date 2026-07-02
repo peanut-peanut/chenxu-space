@@ -49,9 +49,10 @@ function request(config) {
       withCredentials: true,
       success: async (res) => {
         const payload = res.data
+        const isAuthEndpoint = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'].includes(config.url)
 
         if (payload?.code && payload.code !== 200) {
-          if (payload.code === 401 && !config._retry) {
+          if (payload.code === 401 && !config._retry && !isAuthEndpoint) {
             if (isRefreshing) {
               pendingQueue.push({ resolve, reject, config: { ...config, _retry: true } })
               return
